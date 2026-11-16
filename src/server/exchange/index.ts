@@ -168,6 +168,30 @@ export async function updateEventDetails(
   return ok({ eventDetails: eventDetailsOf(row) })
 }
 
+export async function closeRegistration(hostToken: string | undefined): Promise<Result<{ status: ExchangeStatus }>> {
+  return changeRegistration(hostToken, "open", "closed")
+}
+
+export async function reopenRegistration(hostToken: string | undefined): Promise<Result<{ status: ExchangeStatus }>> {
+  return changeRegistration(hostToken, "closed", "open")
+}
+
+async function changeRegistration(
+  hostToken: string | undefined,
+  from: "open" | "closed",
+  to: "open" | "closed",
+): Promise<Result<{ status: ExchangeStatus }>> {
+  const current = await findByHostToken(hostToken)
+  if (!current) return fail({ code: "invalid_credential" })
+  // The conditional UPDATE locks the same Exchange row as joins and checks its current Status atomically.
+  const [row] = await db
+    .update(exchange)
+    .set({ status: to, updatedAt: new Date() })
+    .where(and(eq(exchange.id, current.id), eq(exchange.status, from)))
+    .returning({ status: exchange.status })
+  return row ? ok(row) : fail({ code: "invalid_transition" })
+}
+
 export async function join(
   accessCode: string,
   displayName: string,
