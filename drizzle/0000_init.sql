@@ -1,0 +1,23 @@
+CREATE TABLE "exchange" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" text NOT NULL,
+	"access_code" text NOT NULL,
+	"status" text DEFAULT 'open' NOT NULL,
+	"max_participants" integer NOT NULL,
+	"event_date" date NOT NULL,
+	"event_time" time NOT NULL,
+	"location" text NOT NULL,
+	"description" text,
+	"instructions" text,
+	"notes" text,
+	"budget_amount" numeric(12, 2),
+	"budget_currency" text,
+	"host_token_hash" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "exchange_access_code_unique" UNIQUE("access_code"),
+	CONSTRAINT "exchange_host_token_hash_unique" UNIQUE("host_token_hash"),
+	CONSTRAINT "exchange_status_check" CHECK ("exchange"."status" in ('open', 'closed', 'assigned', 'completed')),
+	CONSTRAINT "exchange_max_participants_check" CHECK ("exchange"."max_participants" between 3 and 50),
+	CONSTRAINT "exchange_budget_check" CHECK ("exchange"."budget_amount" is null or ("exchange"."budget_amount" > 0 and "exchange"."budget_currency" is not null))
+);
