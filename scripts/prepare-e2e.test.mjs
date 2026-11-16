@@ -39,7 +39,7 @@ test("an exited process's lock is preserved under a stale filename", (t) => {
   assert.equal(readFileSync(path.join(output, "dev", files[0]), "utf8"), contents)
 })
 
-for (const contents of ["not-json", JSON.stringify({ pid: -1 }), JSON.stringify({ pid: "123" })]) {
+for (const contents of ["not-json", "null", "{}", JSON.stringify({ pid: -1 }), JSON.stringify({ pid: "123" })]) {
   test(`an unreadable or invalid lock is preserved: ${contents}`, (t) => {
     const output = fixture(t, contents)
     assert.throws(() => prepareE2E(output), /Inspect it before retrying E2E/)

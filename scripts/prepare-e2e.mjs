@@ -11,7 +11,7 @@ export function prepareE2E(outputDirectory) {
     if (error.code === "ENOENT") return
     throw new Error(`Cannot read ${lockPath}. Inspect it before retrying E2E.`, { cause: error })
   }
-  if (!Number.isSafeInteger(lock.pid) || lock.pid <= 0) {
+  if (!Number.isSafeInteger(lock?.pid) || lock.pid <= 0) {
     throw new Error(`Invalid PID in ${lockPath}. Inspect it before retrying E2E.`)
   }
   try {
