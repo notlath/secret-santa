@@ -1,15 +1,20 @@
 import "server-only"
-import { asc, eq } from "drizzle-orm"
+import { and, asc, eq, ne } from "drizzle-orm"
 import { formatAccessCode, generateAccessCode, normalizeAccessCode } from "@/lib/access-code"
 import { normalizeDisplayName, validateDisplayName } from "@/lib/display-name"
-import { validateExchangeDetails, type ExchangeDetailsInput } from "@/lib/exchange-details"
+import {
+  validateEventDetails,
+  validateExchangeDetails,
+  type EventDetailsInput,
+  type ExchangeDetailsInput,
+} from "@/lib/exchange-details"
 import { generateLinkToken, hashLinkToken } from "@/server/credentials"
 import { db } from "@/server/db"
 import { exchange, participant } from "@/server/db/schema"
 import { fail, ok, type Result } from "./errors"
 
 export type { ExchangeError, Result } from "./errors"
-export type { ExchangeDetailsInput } from "@/lib/exchange-details"
+export type { EventDetailsInput, ExchangeDetailsInput } from "@/lib/exchange-details"
 
 export type ExchangeStatus = "open" | "closed" | "assigned" | "completed"
 
@@ -92,6 +97,25 @@ export async function hostView(hostToken: string | undefined): Promise<Result<Ho
       .where(eq(participant.exchangeId, row.id))
       .orderBy(asc(participant.createdAt), asc(participant.id)),
   })
+}
+
+// Event Details live on the Exchange row only, so an edit never touches Assignments.
+export async function updateEventDetails(
+  hostToken: string | undefined,
+  input: EventDetailsInput,
+): Promise<Result<{ eventDetails: EventDetails }>> {
+  const current = await findByHostToken(hostToken)
+  if (!current) return fail({ code: "invalid_credential" })
+  const validated = validateEventDetails(input)
+  if (!validated.ok) return fail({ code: "validation", fields: validated.fields })
+  // The status check sits in the update itself, so a Completed mark that lands meanwhile still wins.
+  const [row] = await db
+    .update(exchange)
+    .set({ ...validated.value, updatedAt: new Date() })
+    .where(and(eq(exchange.id, current.id), ne(exchange.status, "completed")))
+    .returning()
+  if (!row) return fail({ code: "invalid_transition" })
+  return ok({ eventDetails: eventDetailsOf(row) })
 }
 
 export async function join(
