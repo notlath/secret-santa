@@ -21,7 +21,7 @@ export async function RoleSwitcher({ exchangeId, current }: { exchangeId: string
           key={role}
           href={path(exchangeId)}
           aria-current={role === current ? "page" : undefined}
-          className="rounded-full px-4 py-2 text-sm font-semibold text-muted-ink transition-[color,background-color,scale] duration-150 ease-out hover:text-ink active:scale-[0.97] aria-[current=page]:bg-pine aria-[current=page]:text-paper"
+          className="rounded-full px-4 py-2 text-sm font-semibold text-muted-ink transition-[color,background-color] motion-safe:transition-[color,background-color,scale] duration-150 ease-out hover:text-ink motion-safe:active:scale-[0.97] aria-[current=page]:bg-pine aria-[current=page]:text-paper"
         >
           {label}
         </Link>
