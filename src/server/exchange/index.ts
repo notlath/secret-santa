@@ -236,7 +236,6 @@ export async function revealView(personalToken: string | undefined): Promise<Res
 export async function markRevealed(personalToken: string | undefined): Promise<Result<{ revealedAt: Date | null }>> {
   const view = await revealView(personalToken)
   if (!view.ok) return view
-  if (view.value.status === "completed") return ok({ revealedAt: view.value.revealedAt })
   const [row] = await db.update(participant)
     .set({ revealedAt: sql`coalesce(${participant.revealedAt}, now())` })
     .where(eq(participant.personalTokenHash, hashLinkToken(personalToken!)))

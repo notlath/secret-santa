@@ -11,19 +11,19 @@ import { finishExchangeAction } from "./actions"
 export function FinishControls({ exchangeId, status }: { exchangeId: string; status: ExchangeStatus }) {
   const hydrated = useHydrated()
   const router = useRouter()
-  const [message, setMessage] = useState("")
+  const [messages, setMessages] = useState({ complete: "", delete: "" })
 
   async function finish(operation: "complete" | "delete") {
-    setMessage("")
+    setMessages((current) => ({ ...current, [operation]: "" }))
     let result
     try {
       result = await finishExchangeAction(exchangeId, operation)
     } catch {
       const failure = operation === "complete" ? "Couldn't mark the Exchange completed. Please try again." : "Couldn't delete the Exchange. Please try again."
-      setMessage(failure)
+      setMessages((current) => ({ ...current, [operation]: failure }))
       throw new Error(failure)
     }
-    if (!result.ok) { setMessage(result.message); throw new Error(result.message) }
+    if (!result.ok) { setMessages((current) => ({ ...current, [operation]: result.message })); throw new Error(result.message) }
     if (operation === "delete") router.replace("/")
     else router.refresh()
   }
@@ -40,7 +40,7 @@ export function FinishControls({ exchangeId, status }: { exchangeId: string; sta
             <AlertDialogContent>
               <AlertDialogTitle className="font-display text-xl">Mark this Exchange completed?</AlertDialogTitle>
               <AlertDialogDescription>Nothing can be edited afterwards. Reveals stay visible. This can&apos;t be undone.</AlertDialogDescription>
-              <p role="alert" className="text-cranberry">{message}</p>
+              <p role="alert" className="text-cranberry">{messages.complete}</p>
               <div className="flex flex-wrap justify-end gap-3">
                 <AlertDialogClose render={<Button />}>Cancel</AlertDialogClose>
                 <AlertDialogClose value="confirm" action={() => finish("complete")} render={<Button data-variant="solid" />}>Mark completed</AlertDialogClose>
@@ -56,14 +56,13 @@ export function FinishControls({ exchangeId, status }: { exchangeId: string; sta
         <AlertDialogContent>
           <AlertDialogTitle className="font-display text-xl">Delete this Exchange?</AlertDialogTitle>
           <AlertDialogDescription>All Participants, Wishlists and Assignments are removed and every link stops working. This can&apos;t be undone.</AlertDialogDescription>
-          <p role="alert" className="text-cranberry">{message}</p>
+          <p role="alert" className="text-cranberry">{messages.delete}</p>
           <div className="flex flex-wrap justify-end gap-3">
             <AlertDialogClose render={<Button />}>Cancel</AlertDialogClose>
             <AlertDialogClose value="confirm" action={() => finish("delete")} render={<Button data-variant="solid" />}>Delete everything</AlertDialogClose>
           </div>
         </AlertDialogContent>
       </AlertDialog>
-      <p role="status" className="text-cranberry">{message}</p>
     </section>
   )
 }

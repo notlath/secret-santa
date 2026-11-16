@@ -73,10 +73,12 @@ describe("a Completed Exchange", () => {
     }
   })
 
-  it("does not change a Participant's revealed mark when they reopen the box", async () => {
+  it("still records a first reveal, so the Host sees who has opened their gift box", async () => {
     const exchange = await completed()
     const result = await markRevealed(exchange.people[0].personalToken)
-    expect(result).toEqual({ ok: true, value: { revealedAt: null } })
+    expect(result.ok && result.value.revealedAt).toBeInstanceOf(Date)
+    const view = await hostView(exchange.hostToken)
+    expect(view.ok && view.value.participants.filter((person) => person.revealedAt)).toHaveLength(1)
   })
 })
 

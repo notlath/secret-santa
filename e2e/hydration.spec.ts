@@ -1,5 +1,5 @@
 import { expect, expectNativeDisabled, test } from "./fixtures"
-import { createExchange } from "./helpers"
+import { createExchange, drawnExchange } from "./helpers"
 
 for (const action of ["join", "copy"] as const) {
   test(`${action} waits for hydration before accepting input`, async ({ page, delayedPage }) => {
@@ -39,4 +39,23 @@ test("Participant management waits for hydration", async ({ page, delayedPage })
   delayedPage.release()
   await expect(reissue).toBeEnabled()
   await expect(remove).toBeEnabled()
+})
+
+test("Finish controls wait for hydration", async ({ page, delayedPage }) => {
+  test.setTimeout(120_000)
+  const people = await drawnExchange(page, delayedPage.page.context().browser()!)
+  try {
+    const slow = delayedPage.page
+    await slow.goto(page.url(), { waitUntil: "commit" })
+    const finish = slow.getByRole("region", { name: "Finish" })
+    const complete = finish.getByRole("button", { name: "Mark completed", exact: true })
+    const remove = finish.getByRole("button", { name: "Delete Exchange" })
+    await expectNativeDisabled(complete)
+    await expectNativeDisabled(remove)
+    delayedPage.release()
+    await expect(complete).toBeEnabled()
+    await expect(remove).toBeEnabled()
+  } finally {
+    await Promise.all(people.map((person) => person.context.close()))
+  }
 })
