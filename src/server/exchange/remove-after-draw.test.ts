@@ -1,19 +1,6 @@
 import { expect, test } from "vitest"
-import { closeRegistration, draw, hostView, markRevealed, participantView, removeParticipant, revealView, updateParticipant } from "."
-import { created, joined } from "./test-helpers"
-
-async function drawnExchange(names: string[]) {
-  const exchange = await created()
-  const people = []
-  for (const name of names) {
-    const person = await joined(exchange.accessCode, name)
-    await updateParticipant(person.personalToken, { wishlist: [{ name: `${name}'s book` }, { name: `${name}'s mug` }, { name: `${name}'s scarf` }] })
-    people.push(person)
-  }
-  await closeRegistration(exchange.hostToken)
-  expect((await draw(exchange.hostToken)).ok).toBe(true)
-  return { ...exchange, people }
-}
+import { hostView, markRevealed, participantView, removeParticipant, revealView } from "."
+import { drawnExchange } from "./test-helpers"
 
 async function recipientsOf(people: Awaited<ReturnType<typeof drawnExchange>>["people"]) {
   const result = new Map<string, string>()

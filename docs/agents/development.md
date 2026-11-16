@@ -22,7 +22,9 @@ Schema changes require a Drizzle migration. The tooling suite rejects `public`-q
 
 ## Verification
 
-Run `pnpm verify` before reporting an integration candidate ready. It requires TEST_DATABASE_URL, then runs lint, typecheck, tooling tests, module tests and the complete phone/desktop browser suite, stopping on the first failure. Run focused tests during implementation; full verification includes existing pages that a new component might affect. Passing verification does not authorize a merge.
+Run `pnpm test` green first: it fails in seconds where verify reaches it after lint, typecheck and tooling. Then run `pnpm verify` before reporting an integration candidate ready. It requires TEST_DATABASE_URL, then runs lint, typecheck, tooling tests, module tests and the complete phone/desktop browser suite, stopping on the first failure. Run focused tests during implementation; full verification includes existing pages that a new component might affect. Passing verification does not authorize a merge.
+
+`pnpm verify` takes about 90 seconds, past the tool timeout. Start it with `run_in_background`, wait for the completion notification, and read its output file rather than piping it through `tail`.
 
 Verification fingerprints tracked and untracked Git-visible inputs before running checks and after each check. An edit invalidates the result even if every executed check passed. Generated Next files and ignored outputs are excluded. Finish focused fixes and review corrections before the final run, and keep inputs unchanged until it finishes. Edits reverted between snapshots cannot be detected; use an unchanged checkout for final verification.
 

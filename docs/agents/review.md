@@ -11,3 +11,5 @@ For browser assertions, check whether the test isolates the condition it claims 
 For new custom graphics or unfamiliar CSS utilities, require rendered evidence during focused UI testing: essential geometry assertions and inspected phone/desktop screenshots. A generated screenshot alone does not establish that the layout was reviewed.
 
 Review settled changes before final verification. A successful verification must refer to unchanged inputs; consult its fingerprinted summary when comparing results or diagnosing a failure.
+
+Confirm each finding against the code or an existing test before reporting it, and quote the line that proves it. A claim about behavior (an allowed status, an error mapping) is checked where that behavior lives.

@@ -65,6 +65,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
 For setup, ticket branches, database access, or verification, read `docs/agents/development.md`.
+UI change (`.tsx`, dialog, control): read `docs/agents/development.md` References, then the `ui-sdk` docs it names, before editing.
 For code review, read `docs/agents/review.md` alongside the originating ticket and spec.
 
 ## Agent skills

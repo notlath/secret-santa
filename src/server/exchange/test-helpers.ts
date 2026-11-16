@@ -1,7 +1,8 @@
+import { expect } from "vitest"
 import { eq, sql } from "drizzle-orm"
 import { db } from "@/server/db"
 import { exchange } from "@/server/db/schema"
-import { createExchange, join, type ExchangeDetailsInput, type ExchangeStatus } from "."
+import { closeRegistration, createExchange, draw, join, updateParticipant, type ExchangeDetailsInput, type ExchangeStatus } from "."
 
 // Until the Host operations that change Status exist, tests set it directly.
 export async function setStatus(exchangeId: string, status: ExchangeStatus) {
@@ -52,4 +53,18 @@ export async function failSecondAssignmentInsert(exchangeId: string) {
     await db.execute(sql`drop trigger reject_second_assignment on assignment`)
     await db.execute(sql`drop function reject_second_assignment()`)
   }
+}
+
+// A closed-then-drawn Exchange whose Participants each have a full Wishlist.
+export async function drawnExchange(names: string[]) {
+  const exchange = await created()
+  const people = []
+  for (const name of names) {
+    const person = await joined(exchange.accessCode, name)
+    await updateParticipant(person.personalToken, { wishlist: [{ name: `${name}'s book` }, { name: `${name}'s mug` }, { name: `${name}'s scarf` }] })
+    people.push(person)
+  }
+  await closeRegistration(exchange.hostToken)
+  expect((await draw(exchange.hostToken)).ok).toBe(true)
+  return { ...exchange, people }
 }
