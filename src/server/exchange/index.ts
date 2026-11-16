@@ -193,6 +193,18 @@ export async function draw(hostToken: string | undefined): Promise<Result<{ stat
   })
 }
 
+export async function markCompleted(hostToken: string | undefined): Promise<Result<{ status: ExchangeStatus }>> {
+  return changeStatus(hostToken, "assigned", "completed")
+}
+
+// Participants, Wishlist Items and Assignments go with the row through their cascading foreign keys.
+export async function deleteExchange(hostToken: string | undefined): Promise<Result<null>> {
+  const current = await findByHostToken(hostToken)
+  if (!current) return fail({ code: "invalid_credential" })
+  await db.delete(exchange).where(eq(exchange.id, current.id))
+  return ok(null)
+}
+
 export type RevealView = {
   id: string
   name: string
@@ -233,11 +245,11 @@ export async function markRevealed(personalToken: string | undefined): Promise<R
 }
 
 export async function closeRegistration(hostToken: string | undefined): Promise<Result<{ status: ExchangeStatus }>> {
-  return changeRegistration(hostToken, "open", "closed")
+  return changeStatus(hostToken, "open", "closed")
 }
 
 export async function reopenRegistration(hostToken: string | undefined): Promise<Result<{ status: ExchangeStatus }>> {
-  return changeRegistration(hostToken, "closed", "open")
+  return changeStatus(hostToken, "closed", "open")
 }
 
 export async function removeParticipant(hostToken: string | undefined, participantId: string): Promise<Result<null>> {
@@ -281,10 +293,10 @@ export async function reissuePersonalLink(hostToken: string | undefined, partici
   })
 }
 
-async function changeRegistration(
+async function changeStatus(
   hostToken: string | undefined,
-  from: "open" | "closed",
-  to: "open" | "closed",
+  from: ExchangeStatus,
+  to: ExchangeStatus,
 ): Promise<Result<{ status: ExchangeStatus }>> {
   const current = await findByHostToken(hostToken)
   if (!current) return fail({ code: "invalid_credential" })
