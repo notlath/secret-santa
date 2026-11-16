@@ -18,6 +18,7 @@ test("Host closes registration, refuses a waiting join, and reopens for a late f
     await close.focus()
     await page.keyboard.press("Enter")
     await expect(page.getByRole("button", { name: "Reopen registration", exact: true })).toBeVisible()
+    await expect(page.getByRole("region", { name: "Registration and Draw" }).getByRole("status")).toHaveText("Registration is closed. Wishlists can still be edited.")
     await expect(draw).toHaveAccessibleDescription(/At least 3 Participants/)
     await expect(draw).not.toHaveAccessibleDescription(/Close registration/)
     await friend.getByRole("button", { name: "Join", exact: true }).click()

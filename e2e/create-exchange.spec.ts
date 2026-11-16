@@ -20,7 +20,7 @@ test("a Host creates an Exchange, saves the Host Link and reaches the dashboard"
 
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"])
   await page.getByRole("button", { name: "Copy join link" }).click()
-  await expect(page.getByRole("status")).toContainText("Copied")
+  await expect(page.getByRole("region", { name: "Invite your friends" }).getByRole("status")).toContainText("Copied")
   const copied = await page.evaluate(() => navigator.clipboard.readText())
   expect(copied).toMatch(new RegExp(`/join/${accessCode}$`))
 })
