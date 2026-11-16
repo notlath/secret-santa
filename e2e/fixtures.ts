@@ -1,4 +1,4 @@
-import { expect, test as base, type Locator, type Page, type Request } from "@playwright/test"
+import { expect, test as base, type Locator, type Page, type Request, type Route } from "@playwright/test"
 
 export const test = base.extend<{ delayedPage: { page: Page; release: () => void } }>({
   delayedPage: async ({ context }, provide) => {
@@ -38,6 +38,21 @@ export function observeRequests(page: Page, matches: (request: Request) => boole
 export async function expectNativeDisabled(control: Locator) {
   await expect(control).toBeDisabled()
   await expect(control).toHaveAttribute("disabled", "")
+}
+
+// Let the server finish an action, then simulate losing its response to the browser.
+export async function loseNextActionResponse(page: Page) {
+  const matches = (url: URL) => url.pathname === new URL(page.url()).pathname
+  const handler = async (route: Route) => {
+    if (route.request().method() !== "POST" || !route.request().headers()["next-action"]) {
+      await route.continue()
+      return
+    }
+    await route.fetch()
+    await route.abort("failed")
+    await page.unroute(matches, handler)
+  }
+  await page.route(matches, handler)
 }
 
 export type OpeningMode = "pointer" | "reduced-motion-pointer" | "keyboard"

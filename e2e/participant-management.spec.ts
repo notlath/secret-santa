@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test"
+import { expect, loseNextActionResponse, test } from "./fixtures"
 import { createExchange } from "./helpers"
 
 test("Host re-issues a Personal Link and the old link and cookie stop working", async ({ page, browser }) => {
@@ -27,6 +27,17 @@ test("Host re-issues a Personal Link and the old link and cookie stop working", 
   const fresh = await browser.newContext()
   const newDevice = await fresh.newPage()
   await newDevice.goto(newLink)
+  await expect(newDevice.getByText("You're in as Ben")).toBeVisible()
+  await loseNextActionResponse(page)
+  await page.getByRole("button", { name: "Re-issue link for Ben" }).click()
+  await expect(page.getByText("The link may have changed. Re-issue it again to get a working link.")).toBeVisible()
+  await expect(page.getByRole("button", { name: "Copy new Personal Link" })).toHaveCount(0)
+  await newDevice.goto(newLink)
+  await expect(newDevice.getByRole("heading", { name: "This link no longer works" })).toBeVisible()
+  await page.getByRole("button", { name: "Re-issue link for Ben" }).click()
+  await page.getByRole("button", { name: "Copy new Personal Link" }).click()
+  const recoveredLink = await page.evaluate(() => navigator.clipboard.readText())
+  await newDevice.goto(recoveredLink)
   await expect(newDevice.getByText("You're in as Ben")).toBeVisible()
   await fresh.close()
   await device.close()
