@@ -15,6 +15,9 @@ export default async function EventDetailsPage({ params }: PageProps<"/e/[id]/ev
   const asParticipant = asHost.ok ? undefined : await participantView(jar.get(personalCookieName(id))?.value)
   const view = asHost.ok ? asHost : asParticipant
   if (!view?.ok || view.value.id !== id) {
+    if (jar.get(hostCookieName(id)) || jar.get(personalCookieName(id))) {
+      return <Explanation title="This link no longer works"><p>Ask your Host for a new one.</p></Explanation>
+    }
     return (
       <Explanation title="You need your link">
         <p>Open your Personal Link or Host Link on this device to see the Event Details.</p>

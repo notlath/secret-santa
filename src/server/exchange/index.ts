@@ -239,6 +239,30 @@ export async function reopenRegistration(hostToken: string | undefined): Promise
   return changeRegistration(hostToken, "closed", "open")
 }
 
+export async function removeParticipant(hostToken: string | undefined, participantId: string): Promise<Result<null>> {
+  const current = await findByHostToken(hostToken)
+  if (!current) return fail({ code: "invalid_credential" })
+  return db.transaction(async (tx) => {
+    const [row] = await tx.select({ status: exchange.status }).from(exchange).where(eq(exchange.id, current.id)).for("update")
+    if (row.status !== "open" && row.status !== "closed") return fail({ code: "invalid_transition" })
+    const [removed] = await tx.delete(participant).where(and(eq(participant.id, participantId), eq(participant.exchangeId, current.id))).returning({ id: participant.id })
+    return removed ? ok(null) : fail({ code: "not_found" })
+  })
+}
+
+export async function reissuePersonalLink(hostToken: string | undefined, participantId: string): Promise<Result<{ personalToken: string }>> {
+  const current = await findByHostToken(hostToken)
+  if (!current) return fail({ code: "invalid_credential" })
+  return db.transaction(async (tx) => {
+    const [row] = await tx.select({ status: exchange.status }).from(exchange).where(eq(exchange.id, current.id)).for("update")
+    if (row.status !== "open" && row.status !== "closed") return fail({ code: "invalid_transition" })
+    const personalToken = generateLinkToken()
+    const [updated] = await tx.update(participant).set({ personalTokenHash: hashLinkToken(personalToken) })
+      .where(and(eq(participant.id, participantId), eq(participant.exchangeId, current.id))).returning({ id: participant.id })
+    return updated ? ok({ personalToken }) : fail({ code: "not_found" })
+  })
+}
+
 async function changeRegistration(
   hostToken: string | undefined,
   from: "open" | "closed",
@@ -347,6 +371,10 @@ export async function updateParticipant(
       .where(eq(exchange.id, found.exchangeId))
       .for("update")
     if (row.status !== "open" && row.status !== "closed") return fail({ code: "invalid_transition" })
+
+    const [stillValid] = await tx.select({ id: participant.id }).from(participant)
+      .where(and(eq(participant.id, found.id), eq(participant.personalTokenHash, hashLinkToken(personalToken))))
+    if (!stillValid) return fail({ code: "invalid_credential" })
 
     if (name?.ok) {
       const normalized = normalizeDisplayName(name.value)

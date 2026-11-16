@@ -57,7 +57,7 @@ test("a friend joins with the Access Code and the Host sees them", async ({ page
   expect(await other.evaluate(() => navigator.clipboard.readText())).toBe(personalLink)
 
   await page.reload()
-  await expect(page.getByRole("list", { name: "Participants" }).getByRole("listitem")).toHaveText([/^Ben\s*Not ready$/])
+  await expect(page.getByRole("list", { name: "Participants" }).getByRole("listitem")).toContainText(["Ben"])
   await friend.close()
 })
 

@@ -13,6 +13,9 @@ export default async function RevealPage({ params }: PageProps<"/e/[id]/reveal">
   const { id } = await params
   const token = (await cookies()).get(personalCookieName(id))?.value
   const view = await revealView(token)
+  if (token && !view.ok && view.error.code === "invalid_credential") {
+    return <Explanation title="This link no longer works"><p>Ask your Host for a new one.</p></Explanation>
+  }
   if (!view.ok || view.value.id !== id) {
     const waiting = !view.ok && view.error.code === "invalid_transition"
     return (

@@ -12,6 +12,7 @@ import { hostView } from "@/server/exchange"
 import { requestLocale } from "@/server/request-locale"
 import { RegistrationControls } from "./registration-controls"
 import { EventDetailsEditor } from "./event-details-editor"
+import { ParticipantControls } from "./participant-controls"
 
 export const metadata = { title: "Host dashboard · Gift Exchange" }
 
@@ -19,6 +20,9 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
   const { id } = await params
   const token = (await cookies()).get(hostCookieName(id))?.value
   const view = await hostView(token)
+  if (token && (!view.ok || view.value.id !== id)) {
+    return <Explanation title="This link no longer works"><p>Ask your Host for a new one.</p></Explanation>
+  }
   if (!view.ok || view.value.id !== id) {
     return (
       <Explanation title="You need the Host Link">
@@ -76,9 +80,9 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
         ) : (
           <ul aria-labelledby="participants" className="flex flex-col divide-y divide-line rounded-2xl border border-line bg-paper">
             {exchange.participants.map((participant) => (
-              <li key={participant.id} className="flex items-center justify-between gap-3 px-4 py-3 text-ink">
-                <span className="min-w-0 break-words">{participant.displayName}</span>
-                <ReadyBadge ready={participant.ready} />
+              <li key={participant.id} className="flex flex-col gap-3 px-4 py-3 text-ink">
+                <div className="flex items-center justify-between gap-3"><span className="min-w-0 break-words">{participant.displayName}</span><ReadyBadge ready={participant.ready} /></div>
+                {(exchange.status === "open" || exchange.status === "closed") && <ParticipantControls exchangeId={id} participantId={participant.id} name={participant.displayName} />}
               </li>
             ))}
           </ul>

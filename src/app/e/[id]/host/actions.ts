@@ -3,7 +3,14 @@
 import { cookies } from "next/headers"
 import type { EventDetailsInput } from "@/lib/exchange-details"
 import { hostCookieName } from "@/server/credentials"
-import { closeRegistration, draw, reopenRegistration, updateEventDetails } from "@/server/exchange"
+import { closeRegistration, draw, reopenRegistration, updateEventDetails, removeParticipant, reissuePersonalLink } from "@/server/exchange"
+
+export async function manageParticipantAction(exchangeId: string, participantId: string, operation: "remove" | "reissue") {
+  const token = (await cookies()).get(hostCookieName(exchangeId))?.value
+  const result = operation === "remove" ? await removeParticipant(token, participantId) : await reissuePersonalLink(token, participantId)
+  if (!result.ok) return { ok: false as const, message: "Couldn't update this Participant. Refresh the page and try again." }
+  return { ok: true as const, personalToken: result.value?.personalToken }
+}
 
 export type UpdateEventDetailsState = { ok: true } | { ok: false; fields: Record<string, string>; message?: string }
 
