@@ -46,4 +46,6 @@ Consult references in bounded sections and reuse material already read in the se
 
 For client controls that need JavaScript, reuse `delayedPage` and `expectNativeDisabled` from `e2e/fixtures.ts` to exercise the server-rendered state and then release scripts. Native behavior such as form submission requires the native disabled attribute before hydration; an ARIA-only assertion does not establish that protection. `openAndExpectMotion` separately exercises normal pointer, reduced-motion pointer and keyboard activation, including a preference change after the page has mounted.
 
+For an action whose server-side result may succeed even if its response is lost, use `loseNextActionResponse` in `e2e/fixtures.ts` to exercise the uncertain outcome and recovery.
+
 For visibility-aware polling, use `observeRequests` and `setPageVisibility` from `e2e/fixtures.ts` to verify that requests stop while hidden and resume on return, alongside assertions on the displayed data.

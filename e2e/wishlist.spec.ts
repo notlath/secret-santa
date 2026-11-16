@@ -38,7 +38,7 @@ test("a Participant fills in a Wishlist, sees they're Ready, and the Host's mete
   await page.reload()
   const meter = page.getByRole("meter", { name: "Wishlists ready" })
   await expect(meter).toContainText("0 of 1 ready")
-  await expect(page.getByRole("list", { name: "Participants" }).getByRole("listitem")).toHaveText([/^Ben\s*Not ready$/])
+  await expect(page.getByRole("list", { name: "Participants" }).getByRole("listitem")).toHaveText([/^Ben\s*Not ready/])
 
   await item(ben, 2).getByLabel("Name").fill("A crime novel")
   await item(ben, 3).getByLabel("Name").fill("Hot chocolate")
@@ -58,7 +58,7 @@ test("a Participant fills in a Wishlist, sees they're Ready, and the Host's mete
 
   await page.reload()
   await expect(meter).toContainText("1 of 1 ready")
-  await expect(page.getByRole("list", { name: "Participants" }).getByRole("listitem")).toHaveText([/^Ben\s*✓ Ready$/])
+  await expect(page.getByRole("list", { name: "Participants" }).getByRole("listitem")).toHaveText([/^Ben\s*✓ Ready/])
   await device.close()
 })
 

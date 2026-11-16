@@ -21,6 +21,9 @@ export default async function ParticipantPage({ params }: PageProps<"/e/[id]">) 
   const { id } = await params
   const token = (await cookies()).get(personalCookieName(id))?.value
   const view = await participantView(token)
+  if (token && (!view.ok || view.value.id !== id)) {
+    return <Explanation title="This link no longer works"><p>Ask your Host for a new one.</p></Explanation>
+  }
   if (!token || !view.ok || view.value.id !== id) {
     return (
       <Explanation title="You need your Personal Link">
