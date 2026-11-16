@@ -157,7 +157,7 @@ describe("Personal Link", () => {
         id: exchange.id,
         name: "Office Secret Santa",
         status: "open",
-        me: { id: participant.id, displayName: "Mia" },
+        me: { id: participant.id, displayName: "Mia", ready: false, wishlist: [] },
         eventDetails: expect.objectContaining({ eventDate: "2026-12-18", location: "Mia's flat" }),
       },
     })

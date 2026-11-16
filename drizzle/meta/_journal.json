@@ -15,6 +15,13 @@
       "when": 1794813545266,
       "tag": "0001_participant",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794814361447,
+      "tag": "0002_wishlist_item",
+      "breakpoints": true
     }
   ]
 }

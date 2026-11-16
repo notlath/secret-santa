@@ -61,3 +61,20 @@ export const participant = pgTable(
   },
   (t) => [unique("participant_exchange_name_unique").on(t.exchangeId, t.normalizedDisplayName)],
 )
+
+export const wishlistItem = pgTable(
+  "wishlist_item",
+  {
+    participantId: uuid("participant_id")
+      .notNull()
+      .references(() => participant.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    productLink: text("product_link"),
+  },
+  (t) => [
+    unique("wishlist_item_participant_position_unique").on(t.participantId, t.position),
+    check("wishlist_item_position_check", sql`${t.position} between 1 and 3`),
+  ],
+)
