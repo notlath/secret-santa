@@ -1,26 +1,114 @@
+@layer ui-sdk;
 @import "tailwindcss";
+@import "@ui-sdk/core/web.css" layer(components);
 
+/* Contrast on cream (#fbf6ec): ink 15:1, cranberry 7.6:1, pine 9.4:1, muted 6.3:1,
+   gold-ink 5:1 for text; gold and input borders 3:1+ as non-text. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --cream: #fbf6ec;
+  --cream-deep: #f3eadb;
+  --paper: #fffdf8;
+  --ink: #2a1e1a;
+  --muted-ink: #66574f;
+  --cranberry: #9e1b32;
+  --cranberry-deep: #7d1527;
+  --pine: #1f4d3a;
+  --gold: #b8862b;
+  --gold-ink: #85601c;
+  --line: #e4d8c4;
+  --line-strong: #8c7b70;
+
+  --ui-background: var(--paper);
+  --ui-foreground: var(--ink);
+  --ui-muted: var(--cream-deep);
+  --ui-muted-foreground: var(--muted-ink);
+  --ui-border: var(--line);
+  --ui-input: var(--line-strong);
+  --ui-primary: var(--cranberry);
+  --ui-primary-foreground: var(--paper);
+  --ui-destructive: #b3261e;
+  --ui-ring: color-mix(in oklab, var(--cranberry) 30%, transparent);
+  --ui-ring-border: var(--cranberry);
+  --ui-radius: 0.625rem;
+  --ui-spacing: 0.3rem;
+  --ui-font-size: 1rem;
+  --ui-font-sans: var(--font-figtree), system-ui, sans-serif;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-muted-ink: var(--muted-ink);
+  --color-cranberry: var(--cranberry);
+  --color-cranberry-deep: var(--cranberry-deep);
+  --color-pine: var(--pine);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --color-line: var(--line);
+  --font-sans: var(--font-figtree), system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-figtree), system-ui, sans-serif;
+}
+
+[data-slot="button"] {
+  height: auto;
+  min-height: 2.75rem;
+  padding-inline: 1.125rem;
+  font-weight: 600;
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 160ms ease;
+}
+
+[data-slot="button"]:active:not([data-disabled]) {
+  transform: scale(0.97);
+}
+
+[data-slot="button"][data-variant="solid"] {
+  background: var(--cranberry);
+  color: var(--paper);
+  border-color: var(--cranberry);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  [data-slot="button"][data-variant="solid"]:hover:not([data-disabled]) {
+    background: var(--cranberry-deep);
+  }
+}
+
+[data-slot="input"],
+[data-slot="number-input-group"],
+[data-slot="date-input"],
+[data-slot="time-input"],
+[data-slot="select-trigger"] {
+  min-height: 2.75rem;
+  height: auto;
+}
+
+[data-slot="select-content"] {
+  max-height: min(20rem, var(--available-height));
+  overflow-y: auto;
+}
+
+[data-slot="field-label"] {
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="button"] {
+    transition: background-color 160ms ease;
+  }
+  [data-slot="button"]:active:not([data-disabled]) {
+    transform: none;
+  }
 }
