@@ -24,7 +24,7 @@ export function FinishControls({ exchangeId, status }: { exchangeId: string; sta
       throw new Error(failure)
     }
     if (!result.ok) { setMessages((current) => ({ ...current, [operation]: result.message })); throw new Error(result.message) }
-    if (operation === "delete") router.replace("/")
+    if (operation === "delete") router.replace("/?deleted=1")
     else router.refresh()
   }
 

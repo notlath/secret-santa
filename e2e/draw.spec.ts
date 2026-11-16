@@ -82,6 +82,8 @@ test("Host draws once; every Participant privately opens the same Recipient on r
       await openAndExpectMotion(friend, open, modes[index])
       const recipient = friend.getByRole("region", { name: "Your Recipient" })
       await expect(recipient).toBeVisible()
+      const entered = await recipient.evaluate((card) => card.getAnimations({ subtree: true }).length > 0)
+      expect(entered, `${modes[index]} recipient entrance`).toBe(modes[index] === "pointer")
       const recipientName = await recipient.getByTestId("recipient-name").innerText()
       expect(recipientName).not.toBe(person.name)
       recipients.push(recipientName)

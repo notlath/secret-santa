@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import Link from "next/link"
 import { EventDetailsList } from "@/components/event-details-list"
 import { Explanation } from "@/components/explanation"
 import { StatusBadge } from "@/components/status-badge"
@@ -30,6 +31,9 @@ export default async function EventDetailsPage({ params }: PageProps<"/e/[id]/ev
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+      <Link href={asHost.ok ? `/e/${id}/host` : `/e/${id}`} className="self-start text-sm font-semibold text-pine underline-offset-4 hover:underline">
+        ← {asHost.ok ? "Back to the dashboard" : "Back to my Exchange"}
+      </Link>
       <header className="flex flex-col gap-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-pine">Event Details</p>
         <h1 className="font-display text-3xl text-ink sm:text-4xl">{exchange.name}</h1>

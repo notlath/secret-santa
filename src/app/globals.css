@@ -28,7 +28,7 @@
   --ui-primary: var(--cranberry);
   --ui-primary-foreground: var(--paper);
   --ui-destructive: #b3261e;
-  --ui-ring: color-mix(in oklab, var(--cranberry) 30%, transparent);
+  --ui-ring: var(--cranberry);
   --ui-ring-border: var(--cranberry);
   --ui-radius: 0.625rem;
   --ui-spacing: 0.3rem;
@@ -74,6 +74,54 @@ body {
   transform: scale(0.97);
 }
 
+[data-slot][data-pending] {
+  cursor: progress;
+}
+
+[data-slot][data-pending]::before {
+  content: "";
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 9999px;
+  animation: spin 600ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Only set after a pointer opening without reduced motion; keyboard openings stay instant. */
+[data-entrance],
+[data-entrance] li {
+  animation: rise 300ms var(--ease-out) both;
+}
+
+[data-entrance] li:nth-child(1) { animation-delay: 80ms; }
+[data-entrance] li:nth-child(2) { animation-delay: 130ms; }
+[data-entrance] li:nth-child(3) { animation-delay: 180ms; }
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* An offset keeps the ring distinct from solid cranberry buttons; fields keep theirs flush with the border. */
+:is(a, [data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"]):focus-visible {
+  outline-offset: 2px;
+}
+
 [data-slot="button"][data-variant="solid"] {
   background: var(--cranberry);
   color: var(--paper);
@@ -110,5 +158,8 @@ body {
   }
   [data-slot="button"]:active:not([data-disabled]) {
     transform: none;
+  }
+  [data-slot][data-pending]::before {
+    animation: pulse 1s ease-in-out infinite;
   }
 }

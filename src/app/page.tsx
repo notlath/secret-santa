@@ -5,11 +5,17 @@ import { ROLE_LINKS } from "@/components/role-switcher"
 import { deviceCredentials } from "@/server/credentials"
 import { deviceExchanges } from "@/server/exchange"
 
-export default async function Home() {
+export default async function Home({ searchParams }: PageProps<"/">) {
+  const { deleted } = await searchParams
   const remembered = await deviceExchanges(deviceCredentials((await cookies()).getAll()))
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-8 px-4 py-12">
+      {deleted === "1" && (
+        <p role="status" className="rounded-lg bg-cream-deep px-4 py-3 text-ink">
+          The Exchange was deleted, along with everything in it.
+        </p>
+      )}
       <div className="flex flex-col gap-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-pine">Secret Santa, sorted</p>
         <h1 className="font-display text-4xl leading-tight text-ink sm:text-5xl">Gift Exchange</h1>

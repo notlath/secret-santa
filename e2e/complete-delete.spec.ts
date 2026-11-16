@@ -31,7 +31,8 @@ test("Host deletes the Exchange and Participant links show the explanation", asy
     const hostUrl = page.url()
     await page.getByRole("region", { name: "Finish" }).getByRole("button", { name: "Delete Exchange" }).click()
     await page.getByRole("alertdialog", { name: "Delete this Exchange?" }).getByRole("button", { name: "Delete everything" }).click()
-    await expect(page).toHaveURL(/\/$/)
+    await expect(page).toHaveURL(/\/\?deleted=1$/)
+    await expect(page.getByRole("status")).toHaveText("The Exchange was deleted, along with everything in it.")
 
     await page.goto(hostUrl)
     await expect(page.getByRole("heading", { name: "This link no longer works" })).toBeVisible()
