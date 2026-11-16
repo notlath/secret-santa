@@ -1,10 +1,11 @@
 import "server-only"
-import { eq } from "drizzle-orm"
-import { formatAccessCode, generateAccessCode } from "@/lib/access-code"
+import { asc, eq } from "drizzle-orm"
+import { formatAccessCode, generateAccessCode, normalizeAccessCode } from "@/lib/access-code"
+import { normalizeDisplayName, validateDisplayName } from "@/lib/display-name"
 import { validateExchangeDetails, type ExchangeDetailsInput } from "@/lib/exchange-details"
 import { generateLinkToken, hashLinkToken } from "@/server/credentials"
 import { db } from "@/server/db"
-import { exchange } from "@/server/db/schema"
+import { exchange, participant } from "@/server/db/schema"
 import { fail, ok, type Result } from "./errors"
 
 export type { ExchangeError, Result } from "./errors"
@@ -29,6 +30,23 @@ export type HostView = {
   status: ExchangeStatus
   accessCode: string
   maxParticipants: number
+  eventDetails: EventDetails
+  participants: { id: string; displayName: string }[]
+}
+
+export type ExchangePreview = {
+  name: string
+  accessCode: string
+  status: ExchangeStatus
+  full: boolean
+  eventDetails: EventDetails
+}
+
+export type ParticipantView = {
+  id: string
+  name: string
+  status: ExchangeStatus
+  me: { id: string; displayName: string }
   eventDetails: EventDetails
 }
 
@@ -68,7 +86,80 @@ export async function hostView(hostToken: string | undefined): Promise<Result<Ho
     accessCode: formatAccessCode(row.accessCode),
     maxParticipants: row.maxParticipants,
     eventDetails: eventDetailsOf(row),
+    participants: await db
+      .select({ id: participant.id, displayName: participant.displayName })
+      .from(participant)
+      .where(eq(participant.exchangeId, row.id))
+      .orderBy(asc(participant.createdAt), asc(participant.id)),
   })
+}
+
+export async function join(
+  accessCode: string,
+  displayName: string,
+): Promise<Result<{ exchangeId: string; participant: { id: string; displayName: string }; personalToken: string }>> {
+  const name = validateDisplayName(displayName)
+  if (!name.ok) return fail({ code: "validation", fields: { displayName: name.error } })
+  const personalToken = generateLinkToken()
+  return db.transaction(async (tx) => {
+    // Locking the Exchange row serialises joins, so the count below can't go stale before the insert.
+    const [row] = await tx
+      .select({ id: exchange.id, status: exchange.status, maxParticipants: exchange.maxParticipants })
+      .from(exchange)
+      .where(eq(exchange.accessCode, normalizeAccessCode(accessCode)))
+      .for("update")
+    if (!row) return fail({ code: "not_found" })
+    if (row.status !== "open") return fail({ code: "invalid_transition" })
+    if ((await countParticipants(tx, row.id)) >= row.maxParticipants) return fail({ code: "exchange_full" })
+    const [inserted] = await tx
+      .insert(participant)
+      .values({
+        exchangeId: row.id,
+        displayName: name.value,
+        normalizedDisplayName: normalizeDisplayName(name.value),
+        personalTokenHash: hashLinkToken(personalToken),
+      })
+      .onConflictDoNothing({ target: [participant.exchangeId, participant.normalizedDisplayName] })
+      .returning({ id: participant.id, displayName: participant.displayName })
+    if (!inserted) return fail({ code: "display_name_taken" })
+    return ok({ exchangeId: row.id, participant: inserted, personalToken })
+  })
+}
+
+export async function lookupByAccessCode(accessCode: string): Promise<Result<ExchangePreview>> {
+  const [row] = await db
+    .select()
+    .from(exchange)
+    .where(eq(exchange.accessCode, normalizeAccessCode(accessCode)))
+  if (!row) return fail({ code: "not_found" })
+  return ok({
+    name: row.name,
+    accessCode: formatAccessCode(row.accessCode),
+    status: row.status,
+    full: (await countParticipants(db, row.id)) >= row.maxParticipants,
+    eventDetails: eventDetailsOf(row),
+  })
+}
+
+export async function participantView(personalToken: string | undefined): Promise<Result<ParticipantView>> {
+  if (!personalToken) return fail({ code: "invalid_credential" })
+  const [row] = await db
+    .select({ exchange, me: { id: participant.id, displayName: participant.displayName } })
+    .from(participant)
+    .innerJoin(exchange, eq(exchange.id, participant.exchangeId))
+    .where(eq(participant.personalTokenHash, hashLinkToken(personalToken)))
+  if (!row) return fail({ code: "invalid_credential" })
+  return ok({
+    id: row.exchange.id,
+    name: row.exchange.name,
+    status: row.exchange.status,
+    me: row.me,
+    eventDetails: eventDetailsOf(row.exchange),
+  })
+}
+
+async function countParticipants(executor: Pick<typeof db, "$count">, exchangeId: string): Promise<number> {
+  return executor.$count(participant, eq(participant.exchangeId, exchangeId))
 }
 
 async function findByHostToken(hostToken: string | undefined): Promise<ExchangeRow | undefined> {

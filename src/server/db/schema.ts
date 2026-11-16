@@ -8,7 +8,9 @@ import {
   text,
   time,
   timestamp,
+  unique,
   uuid,
+  boolean,
 } from "drizzle-orm/pg-core"
 
 export const exchange = pgTable(
@@ -41,4 +43,21 @@ export const exchange = pgTable(
       sql`${t.budgetAmount} is null or (${t.budgetAmount} > 0 and ${t.budgetCurrency} is not null)`,
     ),
   ],
+)
+
+export const participant = pgTable(
+  "participant",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    exchangeId: uuid("exchange_id")
+      .notNull()
+      .references(() => exchange.id, { onDelete: "cascade" }),
+    displayName: text("display_name").notNull(),
+    normalizedDisplayName: text("normalized_display_name").notNull(),
+    personalTokenHash: text("personal_token_hash").notNull().unique(),
+    revealedAt: timestamp("revealed_at", { withTimezone: true }),
+    recipientChanged: boolean("recipient_changed").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique("participant_exchange_name_unique").on(t.exchangeId, t.normalizedDisplayName)],
 )

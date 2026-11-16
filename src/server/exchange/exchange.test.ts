@@ -47,6 +47,7 @@ describe("createExchange", () => {
           instructions: "No gift cards",
           notes: "Ugly sweaters welcome",
         },
+        participants: [],
       },
     })
   })

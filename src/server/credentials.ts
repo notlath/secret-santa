@@ -20,3 +20,7 @@ export const linkCookieOptions = {
   path: "/",
   maxAge: 60 * 60 * 24 * 400,
 } as const
+
+export function personalCookieName(exchangeId: string): string {
+  return `gx_p_${exchangeId}`
+}
