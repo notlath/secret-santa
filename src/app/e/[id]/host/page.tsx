@@ -1,19 +1,13 @@
 import { cookies } from "next/headers"
 import { CopyButton } from "@/components/copy-button"
+import { EventDetailsList } from "@/components/event-details-list"
 import { Explanation } from "@/components/explanation"
-import { formatEventDate, formatEventTime, formatMoney } from "@/lib/format"
+import { StatusBadge } from "@/components/status-badge"
 import { hostCookieName } from "@/server/credentials"
-import { hostView, type ExchangeStatus } from "@/server/exchange"
+import { hostView } from "@/server/exchange"
 import { requestLocale } from "@/server/request-locale"
 
 export const metadata = { title: "Host dashboard · Gift Exchange" }
-
-const STATUS_LABEL: Record<ExchangeStatus, string> = {
-  open: "Open for joining",
-  closed: "Registration closed",
-  assigned: "Draw done",
-  completed: "Completed",
-}
 
 export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/host">) {
   const { id } = await params
@@ -28,7 +22,6 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
   }
 
   const exchange = view.value
-  const details = exchange.eventDetails
   const locale = await requestLocale()
   const joinPath = `/join/${exchange.accessCode}`
 
@@ -37,9 +30,7 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
       <header className="flex flex-col gap-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-pine">Host dashboard</p>
         <h1 className="font-display text-3xl text-ink sm:text-4xl">{exchange.name}</h1>
-        <p className="self-start rounded-full bg-pine px-3 py-1 text-sm font-semibold text-paper">
-          {STATUS_LABEL[exchange.status]}
-        </p>
+        <StatusBadge status={exchange.status} />
       </header>
 
       <section aria-labelledby="invite" className="flex flex-col gap-4 rounded-2xl border-2 border-gold bg-paper p-5 sm:p-6">
@@ -59,31 +50,34 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
         <CopyButton path={joinPath}>Copy join link</CopyButton>
       </section>
 
+      <section aria-labelledby="participants" className="flex flex-col gap-4">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 id="participants" className="font-display text-xl text-ink">
+            Participants
+          </h2>
+          <p className="text-sm tabular-nums text-muted-ink">
+            {exchange.participants.length} of {exchange.maxParticipants}
+          </p>
+        </div>
+        {exchange.participants.length === 0 ? (
+          <p className="text-muted-ink">Nobody has joined yet.</p>
+        ) : (
+          <ul aria-labelledby="participants" className="flex flex-col divide-y divide-line rounded-2xl border border-line bg-paper">
+            {exchange.participants.map((participant) => (
+              <li key={participant.id} className="px-4 py-3 text-ink">
+                {participant.displayName}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section aria-labelledby="event" className="flex flex-col gap-4">
         <h2 id="event" className="font-display text-xl text-ink">
           Event Details
         </h2>
-        <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-[auto_1fr]">
-          <Detail term="Date">{formatEventDate(details.eventDate, locale)}</Detail>
-          <Detail term="Time">{formatEventTime(details.eventTime, locale)}</Detail>
-          <Detail term="Location">{details.location}</Detail>
-          {details.budgetAmount && details.budgetCurrency && (
-            <Detail term="Budget">{formatMoney(details.budgetAmount, details.budgetCurrency, locale)}</Detail>
-          )}
-          {details.description && <Detail term="Description">{details.description}</Detail>}
-          {details.instructions && <Detail term="Instructions">{details.instructions}</Detail>}
-          {details.notes && <Detail term="Notes">{details.notes}</Detail>}
-        </dl>
+        <EventDetailsList details={exchange.eventDetails} locale={locale} />
       </section>
     </main>
-  )
-}
-
-function Detail({ term, children }: { term: string; children: React.ReactNode }) {
-  return (
-    <div className="contents">
-      <dt className="text-sm font-semibold text-muted-ink sm:pt-0.5">{term}</dt>
-      <dd className="-mt-3 whitespace-pre-line text-ink sm:mt-0">{children}</dd>
-    </div>
   )
 }

@@ -11,9 +11,12 @@ export default function Home() {
           Set up a Secret Santa, share a code with your friends, and let the Draw keep the secret. No accounts needed.
         </p>
       </div>
-      <Button data-variant="solid" className="self-start" render={<Link href="/new" />}>
-        Create an Exchange
-      </Button>
+      <div className="flex flex-wrap gap-3">
+        <Button data-variant="solid" render={<Link href="/new" />}>
+          Create an Exchange
+        </Button>
+        <Button render={<Link href="/join" />}>Join an Exchange</Button>
+      </div>
     </main>
   )
 }
