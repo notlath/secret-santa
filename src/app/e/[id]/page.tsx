@@ -4,6 +4,8 @@ import { cookies } from "next/headers"
 import { CopyButton } from "@/components/copy-button"
 import { EventDetailsList } from "@/components/event-details-list"
 import { Explanation } from "@/components/explanation"
+import { LiveRefresh } from "@/components/live-refresh"
+import { ReadyBadge } from "@/components/ready-badge"
 import { RoleSwitcher } from "@/components/role-switcher"
 import { StatusBadge } from "@/components/status-badge"
 import { personalCookieName } from "@/server/credentials"
@@ -33,6 +35,7 @@ export default async function ParticipantPage({ params }: PageProps<"/e/[id]">) 
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+      <LiveRefresh exchangeId={id} role="participant" snapshot={JSON.stringify(exchange)} />
       <RoleSwitcher exchangeId={id} current="participant" />
       <header className="flex flex-col gap-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-pine">You&apos;re in as {exchange.me.displayName}</p>
@@ -49,6 +52,21 @@ export default async function ParticipantPage({ params }: PageProps<"/e/[id]">) 
       )}
 
       {editable && <ReadyState ready={exchange.me.ready} saved={exchange.me.wishlist.length} />}
+
+      <section aria-labelledby="participants" className="flex flex-col gap-4">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 id="participants" className="font-display text-xl text-ink">Participants</h2>
+          <p className="text-sm tabular-nums text-muted-ink">{exchange.participants.length} joined</p>
+        </div>
+        <ul aria-labelledby="participants" className="flex flex-col divide-y divide-line rounded-2xl border border-line bg-paper">
+          {exchange.participants.map((person) => (
+            <li key={person.id} className="flex items-center justify-between gap-3 px-4 py-3 text-ink">
+              <span className="min-w-0 break-words">{person.displayName}</span>
+              <ReadyBadge ready={person.ready} />
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section aria-labelledby="wishlist" className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">

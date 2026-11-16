@@ -55,6 +55,7 @@ export type ParticipantView = {
   name: string
   status: ExchangeStatus
   me: Me
+  participants: { id: string; displayName: string; ready: boolean }[]
   eventDetails: EventDetails
 }
 
@@ -314,6 +315,9 @@ export async function participantView(personalToken: string | undefined): Promis
     name: row.exchange.name,
     status: row.exchange.status,
     me: await meOf(db, row.me),
+    participants: await db.select({ id: participant.id, displayName: participant.displayName, ready: readySql })
+      .from(participant).where(eq(participant.exchangeId, row.exchange.id))
+      .orderBy(asc(participant.createdAt), asc(participant.id)),
     eventDetails: eventDetailsOf(row.exchange),
   })
 }
