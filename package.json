@@ -12,7 +12,10 @@
     "test:e2e": "playwright test",
     "typecheck": "next typegen && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "hooks:install": "node scripts/install-hooks.mjs",
+    "test:tooling": "node --test --test-isolation=none scripts/*.test.mjs",
+    "verify": "node scripts/verify.mjs"
   },
   "dependencies": {
     "@ui-sdk/core": "0.1.0-beta.3",

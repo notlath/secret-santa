@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/status-badge"
 import { hostCookieName } from "@/server/credentials"
 import { hostView } from "@/server/exchange"
 import { requestLocale } from "@/server/request-locale"
+import { RegistrationControls } from "./registration-controls"
 import { EventDetailsEditor } from "./event-details-editor"
 
 export const metadata = { title: "Host dashboard · Gift Exchange" }
@@ -81,6 +82,8 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
           </ul>
         )}
       </section>
+
+      <RegistrationControls exchangeId={exchange.id} status={exchange.status} participants={exchange.participants} />
 
       <section aria-labelledby="event" className="flex flex-col gap-4">
         <h2 id="event" className="font-display text-xl text-ink">
