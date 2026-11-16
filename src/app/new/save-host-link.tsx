@@ -6,6 +6,7 @@ import { Field, FieldDescription, FieldLabel } from "@ui-sdk/react/field"
 import { Input } from "@ui-sdk/react/input"
 import { useEffect, useRef, useState } from "react"
 import { CopyButton } from "@/components/copy-button"
+import { JoinForm } from "../join/[code]/join-form"
 
 export function SaveHostLink({ accessCode, hostToken }: { accessCode: string; hostToken: string }) {
   // Only rendered after the create form submits, so browser globals are available.
@@ -60,6 +61,21 @@ export function SaveHostLink({ accessCode, hostToken }: { accessCode: string; ho
           Go to the dashboard
         </Button>
       </div>
+
+      {saved && (
+        <section aria-labelledby="join-too" className="flex flex-col gap-4 border-t border-line pt-8">
+          <div className="flex flex-col gap-2">
+            <h2 id="join-too" className="font-display text-2xl text-ink">
+              Join as a Participant too
+            </h2>
+            <p className="text-muted-ink">
+              Giving and getting a gift yourself? Join like everyone else. You&apos;ll get your own Personal Link, kept
+              separate from your Host Link.
+            </p>
+          </div>
+          <JoinForm accessCode={accessCode} />
+        </section>
+      )}
     </section>
   )
 }

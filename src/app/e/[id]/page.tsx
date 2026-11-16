@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { CopyButton } from "@/components/copy-button"
 import { EventDetailsList } from "@/components/event-details-list"
 import { Explanation } from "@/components/explanation"
+import { RoleSwitcher } from "@/components/role-switcher"
 import { StatusBadge } from "@/components/status-badge"
 import { personalCookieName } from "@/server/credentials"
 import { participantView } from "@/server/exchange"
@@ -30,6 +31,7 @@ export default async function ParticipantPage({ params }: PageProps<"/e/[id]">) 
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+      <RoleSwitcher exchangeId={id} current="participant" />
       <header className="flex flex-col gap-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-pine">You&apos;re in as {exchange.me.displayName}</p>
         <h1 className="font-display text-3xl text-ink sm:text-4xl">{exchange.name}</h1>

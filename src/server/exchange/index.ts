@@ -1,5 +1,5 @@
 import "server-only"
-import { and, asc, eq, ne, sql } from "drizzle-orm"
+import { and, asc, eq, inArray, ne, sql } from "drizzle-orm"
 import { formatAccessCode, generateAccessCode, normalizeAccessCode } from "@/lib/access-code"
 import { normalizeDisplayName, validateDisplayName } from "@/lib/display-name"
 import {
@@ -57,6 +57,12 @@ export type ParticipantView = {
   eventDetails: EventDetails
 }
 
+export type DeviceRole = "host" | "participant"
+
+export type DeviceCredential = { exchangeId: string; role: DeviceRole; token: string }
+
+export type DeviceExchange = { id: string; name: string; roles: DeviceRole[] }
+
 export type Me = { id: string; displayName: string; ready: boolean; wishlist: WishlistItem[] }
 
 type ExchangeRow = typeof exchange.$inferSelect
@@ -83,6 +89,46 @@ export async function createExchange(
       if (!isUniqueViolation(error, "exchange_access_code_unique")) throw error
     }
   }
+}
+
+// Turns the link cookies held by a device into the Exchanges it can open. A credential counts only when
+// its token is valid for that role and belongs to the Exchange it was stored under.
+export async function deviceExchanges(credentials: DeviceCredential[]): Promise<DeviceExchange[]> {
+  const hashesFor = (role: DeviceRole) =>
+    credentials.filter((credential) => credential.role === role).map((credential) => hashLinkToken(credential.token))
+  const hostHashes = hashesFor("host")
+  const personalHashes = hashesFor("participant")
+  const [hosts, participants] = await Promise.all([
+    hostHashes.length === 0
+      ? []
+      : db
+          .select({ id: exchange.id, name: exchange.name, createdAt: exchange.createdAt, hash: exchange.hostTokenHash })
+          .from(exchange)
+          .where(inArray(exchange.hostTokenHash, hostHashes)),
+    personalHashes.length === 0
+      ? []
+      : db
+          .select({ id: exchange.id, name: exchange.name, createdAt: exchange.createdAt, hash: participant.personalTokenHash })
+          .from(participant)
+          .innerJoin(exchange, eq(exchange.id, participant.exchangeId))
+          .where(inArray(participant.personalTokenHash, personalHashes)),
+  ])
+  const found = new Map<string, DeviceExchange & { createdAt: Date }>()
+  for (const [role, rows] of [["host", hosts], ["participant", participants]] as const) {
+    for (const row of rows) {
+      const storedUnder = credentials.some(
+        (credential) =>
+          credential.role === role && credential.exchangeId === row.id && hashLinkToken(credential.token) === row.hash,
+      )
+      if (!storedUnder) continue
+      const entry = found.get(row.id) ?? { id: row.id, name: row.name, roles: [], createdAt: row.createdAt }
+      if (!entry.roles.includes(role)) entry.roles.push(role)
+      found.set(row.id, entry)
+    }
+  }
+  return [...found.values()]
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .map(({ id, name, roles }) => ({ id, name, roles }))
 }
 
 export async function hostView(hostToken: string | undefined): Promise<Result<HostView>> {
