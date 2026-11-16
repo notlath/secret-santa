@@ -26,7 +26,7 @@ test("the Host joins as a Participant too, switches roles, and finds the Exchang
 
   await switcher.getByRole("link", { name: "Host dashboard" }).click()
   await expect(page).toHaveURL(/\/e\/[0-9a-f-]{36}\/host$/)
-  await expect(page.getByRole("list", { name: "Participants" }).getByRole("listitem")).toHaveText(["Mia"])
+  await expect(page.getByRole("list", { name: "Participants" }).getByRole("listitem")).toHaveText([/^Mia/])
   await expect(switcher.getByRole("link", { name: "Host dashboard" })).toHaveAttribute("aria-current", "page")
   await switcher.getByRole("link", { name: "My exchange" }).click()
   await expect(page.getByText("You're in as Mia")).toBeVisible()

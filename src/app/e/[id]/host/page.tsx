@@ -3,6 +3,8 @@ import { CopyButton } from "@/components/copy-button"
 import { EventDetailsList } from "@/components/event-details-list"
 import { Explanation } from "@/components/explanation"
 import { RoleSwitcher } from "@/components/role-switcher"
+import { ReadyBadge } from "@/components/ready-badge"
+import { ReadyMeter } from "@/components/ready-meter"
 import { StatusBadge } from "@/components/status-badge"
 import { hostCookieName } from "@/server/credentials"
 import { hostView } from "@/server/exchange"
@@ -25,6 +27,7 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
   const exchange = view.value
   const locale = await requestLocale()
   const joinPath = `/join/${exchange.accessCode}`
+  const readyCount = exchange.participants.filter((participant) => participant.ready).length
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
@@ -61,13 +64,17 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
             {exchange.participants.length} of {exchange.maxParticipants}
           </p>
         </div>
+        {exchange.participants.length > 0 && (
+          <ReadyMeter ready={readyCount} total={exchange.participants.length} />
+        )}
         {exchange.participants.length === 0 ? (
           <p className="text-muted-ink">Nobody has joined yet.</p>
         ) : (
           <ul aria-labelledby="participants" className="flex flex-col divide-y divide-line rounded-2xl border border-line bg-paper">
             {exchange.participants.map((participant) => (
-              <li key={participant.id} className="px-4 py-3 text-ink">
-                {participant.displayName}
+              <li key={participant.id} className="flex items-center justify-between gap-3 px-4 py-3 text-ink">
+                <span className="min-w-0 break-words">{participant.displayName}</span>
+                <ReadyBadge ready={participant.ready} />
               </li>
             ))}
           </ul>
