@@ -42,6 +42,8 @@ export async function drawnExchange(page: Page, browser: Browser) {
     await friend.getByLabel("Display name").fill(name)
     await friend.getByRole("button", { name: "Join", exact: true }).click()
     await friend.getByRole("link", { name: "Go to my page" }).click()
+    // Submitting before hydration falls back to a native GET, so let scripts finish first.
+    await friend.waitForLoadState("networkidle")
     for (const position of [1, 2, 3]) {
       await friend.getByRole("group", { name: `Item ${position}` }).getByLabel("Name", { exact: true }).fill(`${name}'s gift ${position}`)
     }
