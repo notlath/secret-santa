@@ -1,4 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from "@playwright/test"
+import { openAndExpectMotion, type OpeningMode } from "./fixtures"
 import { createExchange } from "./helpers"
 
 test("Host draws once; every Participant privately opens the same Recipient on return", async ({ page, browser }, testInfo) => {
@@ -12,6 +13,8 @@ test("Host draws once; every Participant privately opens the same Recipient on r
     for (const name of ["Ana", "Ben", "Cara"]) {
       const context = await browser.newContext()
       const friend = await context.newPage()
+      expect(friend.viewportSize()).toEqual(page.viewportSize())
+      expect(await friend.evaluate(() => window.devicePixelRatio)).toBe(await page.evaluate(() => window.devicePixelRatio))
       people.push({ name, page: friend, context })
       await friend.goto(`/join/${accessCode}`)
       await friend.getByLabel("Display name").fill(name)
@@ -57,25 +60,26 @@ test("Host draws once; every Participant privately opens the same Recipient on r
       await expect(friend.getByRole("button", { name: "Save Wishlist" })).toHaveCount(0)
       await friend.getByRole("link", { name: "Reveal my Recipient" }).click()
       await expect(friend.getByRole("heading", { name: "Your Recipient" })).toHaveCount(0)
-      if (index === 0) await friend.screenshot({ path: testInfo.outputPath("gift-box.png"), fullPage: true })
+      if (index === 0) {
+        const button = friend.getByRole("button", { name: "Open my gift box" })
+        const graphic = button.locator('[aria-hidden="true"]')
+        const box = await graphic.boundingBox()
+        const body = await graphic.locator(":scope > span").first().boundingBox()
+        const lid = await graphic.locator("[data-gift-lid]").boundingBox()
+        expect(box).not.toBeNull()
+        expect(body).not.toBeNull()
+        expect(lid).not.toBeNull()
+        expect(body!.width).toBeGreaterThan(box!.width * 0.75)
+        expect(body!.height).toBeGreaterThan(box!.height * 0.5)
+        expect(lid!.width).toBeGreaterThanOrEqual(body!.width)
+        expect(lid!.height).toBeGreaterThan(0)
+        await friend.screenshot({ path: testInfo.outputPath("gift-box.png"), fullPage: true })
+      }
       await page.reload()
       await expect(tracking.getByText(`${index} of 3 have seen their Recipient`)).toBeVisible()
-      if (index === 1) await friend.emulateMedia({ reducedMotion: "reduce" })
       const open = friend.getByRole("button", { name: "Open my gift box" })
-      const movement = open.evaluate((button) => new Promise<boolean>((resolve) => {
-        let moved = false
-        function sample() {
-          if (!button.isConnected) return resolve(moved)
-          if ([...button.querySelectorAll("*")].some((part) => getComputedStyle(part).transform !== "none")) moved = true
-          requestAnimationFrame(sample)
-        }
-        sample()
-      }))
-      const [animated] = await Promise.all([
-        movement,
-        index === 2 ? (async () => { await open.focus(); await friend.keyboard.press("Enter") })() : open.click(),
-      ])
-      expect(animated).toBe(index === 0)
+      const modes: OpeningMode[] = ["pointer", "reduced-motion-pointer", "keyboard"]
+      await openAndExpectMotion(friend, open, modes[index])
       const recipient = friend.getByRole("region", { name: "Your Recipient" })
       await expect(recipient).toBeVisible()
       const recipientName = await recipient.getByTestId("recipient-name").innerText()
