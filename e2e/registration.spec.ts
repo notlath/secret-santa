@@ -55,6 +55,8 @@ test("Draw blockers name only Participants who aren't Ready and clear when all c
       await friend.getByLabel("Display name").fill(name)
       await friend.getByRole("button", { name: "Join", exact: true }).click()
       await friend.getByRole("link", { name: "Go to my page" }).click()
+      // Submitting before hydration falls back to a native GET, so let scripts finish first.
+      await friend.waitForLoadState("networkidle")
       if (name !== "Ben") {
         for (const position of [1, 2, 3]) {
           await friend.getByRole("group", { name: `Item ${position}` }).getByLabel("Name").fill(`Gift ${position}`)

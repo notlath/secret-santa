@@ -1,4 +1,5 @@
-import { expect, test, type BrowserContext, type Locator, type Page } from "@playwright/test"
+import type { BrowserContext, Locator, Page } from "@playwright/test"
+import { expect, test } from "./fixtures"
 import { auditPage, expectEveryStopNamedAndVisible, expectReadableText, tabTo } from "./a11y"
 
 async function typeInto(page: Page, field: Locator, text: string) {
@@ -11,15 +12,11 @@ async function press(page: Page, control: Locator, key = "Enter") {
   await page.keyboard.press(key)
 }
 
-// Every stop inside an open dialog must be named and show its focus ring; focus has to stay inside.
 async function auditDialog(page: Page, dialog: Locator) {
   await expect(dialog).toBeVisible()
   await expect(dialog.getByRole("button", { name: "Cancel", exact: true })).toBeFocused()
   await expectReadableText(page)
-  for (let step = 0; step < 3; step++) {
-    await page.keyboard.press("Tab")
-    await expect(dialog.locator(":focus")).toHaveCount(1)
-  }
+  await expectEveryStopNamedAndVisible(page, dialog)
 }
 
 async function cancelReturnsFocus(page: Page, trigger: Locator, title: string) {

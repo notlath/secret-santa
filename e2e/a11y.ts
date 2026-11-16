@@ -1,8 +1,10 @@
 import { expect, type Locator, type Page } from "@playwright/test"
 
+type Mode = "text" | "edges" | "focus"
+
 // Contrast is measured on painted colors: each color is resolved through a canvas, so color-mix and
 // oklab values compare correctly, and translucent backgrounds are composited over their ancestors.
-async function measure(page: Page, mode: "text" | "focus") {
+async function measure(page: Page, mode: Mode) {
   return page.evaluate((mode) => {
     const canvas = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!
     type RGBA = [number, number, number, number]
@@ -35,30 +37,56 @@ async function measure(page: Page, mode: "text" | "focus") {
       const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x)
       return Math.round(((hi + 0.05) / (lo + 0.05)) * 100) / 100
     }
+    function contrastOn(color: string, element: Element) {
+      const behind = backdrop(element.parentElement)
+      return ratio(over(rgba(color), behind), behind)
+    }
     function describe(element: Element) {
       const text = (element.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 40)
       return `<${element.tagName.toLowerCase()}${element.getAttribute("data-slot") ? ` data-slot=${element.getAttribute("data-slot")}` : ""}> "${text}"`
     }
+    const outline = (style: CSSStyleDeclaration) => `${style.outlineStyle} ${style.outlineWidth} ${style.outlineColor}`
+    const visible = (element: Element) => element.checkVisibility({ opacityProperty: true, visibilityProperty: true })
+    const disabled = (element: Element) => element.closest("[disabled], [data-disabled], [aria-disabled='true']") !== null
 
+    const problems: string[] = []
     if (mode === "focus") {
+      // The last stop's ring must go away once focus leaves it, or it isn't a focus indicator.
+      for (const previous of document.querySelectorAll("[data-audit-ring]")) {
+        const stillFocused = previous.matches(":focus-visible, :has(:focus-visible)")
+        if (!stillFocused && outline(getComputedStyle(previous)) === previous.getAttribute("data-audit-ring")) {
+          problems.push(`${describe(previous)} shows the same outline without focus`)
+        }
+        if (!stillFocused) previous.removeAttribute("data-audit-ring")
+      }
       const focused = document.activeElement
-      if (!focused || focused === document.body) return ["nothing is focused"]
+      if (!focused || focused === document.body) return [...problems, "nothing is focused"]
       for (let node: Element | null = focused, depth = 0; node && depth < 3; node = node.parentElement, depth++) {
         const style = getComputedStyle(node)
         if (style.outlineStyle === "none" || parseFloat(style.outlineWidth) < 1) continue
-        if (style.outlineStyle === "auto") return [`${describe(focused)} uses the browser's default focus ring`]
-        const behind = backdrop(node.parentElement)
-        const contrast = ratio(over(rgba(style.outlineColor), behind), behind)
-        return contrast >= 3 ? [] : [`${describe(focused)} focus ring ${contrast}:1`]
+        if (style.outlineStyle === "auto") return [...problems, `${describe(focused)} uses the browser's default focus ring`]
+        node.setAttribute("data-audit-ring", outline(style))
+        const contrast = contrastOn(style.outlineColor, node)
+        return contrast >= 3 ? problems : [...problems, `${describe(focused)} focus ring ${contrast}:1`]
       }
-      return [`${describe(focused)} has no visible focus ring`]
+      return [...problems, `${describe(focused)} has no visible focus ring`]
     }
 
-    const problems: string[] = []
+    if (mode === "edges") {
+      const controls = 'input[data-slot="input"], textarea, [data-slot="number-input-control"], [data-slot="date-input"], [data-slot="time-input"], [data-slot="select-trigger"], [data-slot="checkbox"], button[data-slot], a[data-slot="button"]'
+      for (const control of document.querySelectorAll(controls)) {
+        if (!visible(control) || disabled(control)) continue
+        const style = getComputedStyle(control)
+        const edge = parseFloat(style.borderTopWidth) >= 1 ? style.borderTopColor : style.backgroundColor
+        const contrast = contrastOn(edge, control)
+        if (contrast < 3) problems.push(`${describe(control)} edge ${contrast}:1`)
+      }
+      return problems
+    }
+
     for (const element of document.body.querySelectorAll("*")) {
       const ownText = [...element.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent!.trim())
-      if (!ownText || !element.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue
-      if (element.closest("[disabled], [data-disabled], [aria-disabled='true']")) continue
+      if (!ownText || !visible(element) || disabled(element)) continue
       const style = getComputedStyle(element)
       const behind = backdrop(element)
       const contrast = ratio(over(rgba(style.color), behind), behind)
@@ -72,34 +100,58 @@ async function measure(page: Page, mode: "text" | "focus") {
 
 export async function expectReadableText(page: Page) {
   expect.soft(await measure(page, "text"), `text contrast on ${page.url()}`).toEqual([])
+  expect.soft(await measure(page, "edges"), `control edges on ${page.url()}`).toEqual([])
 }
 
-// Tabs through every stop on the page once, checking each is named and shows a 3:1 focus ring.
-export async function expectEveryStopNamedAndVisible(page: Page) {
-  // Blurring keeps Chrome's sequential focus starting point where focus was, so start from a marker at the top.
-  await page.locator("body").evaluate((body) => {
-    const start = Object.assign(document.createElement("span"), { tabIndex: -1, id: "audit-start" })
-    body.prepend(start)
-    start.focus()
-  })
+const MAX_STOPS = 150
+
+// Without `within`, the walk starts from a marker at the top of the page: blurring would leave Chrome's
+// sequential focus starting point where focus was. Inside a modal the walk starts from the current focus.
+export async function expectEveryStopNamedAndVisible(page: Page, within?: Locator) {
+  if (!within) {
+    await page.locator("body").evaluate((body) => {
+      const start = Object.assign(document.createElement("span"), { tabIndex: -1, id: "audit-start" })
+      body.prepend(start)
+      start.focus()
+    })
+    await page.keyboard.press("Tab")
+  }
   const seen = new Set<string>()
   const problems: string[] = []
-  for (let step = 0; step < 80; step++) {
-    await page.keyboard.press("Tab")
+  let wrapped = false
+  for (let step = 0; step < MAX_STOPS; step++) {
     const focused = page.locator(":focus")
-    if ((await focused.count()) === 0) break
+    if ((await focused.count()) === 0) {
+      problems.push(...(await measure(page, "focus")).filter((problem) => problem.includes("without focus")))
+      wrapped = true
+      break
+    }
     const id = await focused.evaluate((element) => {
       const marked = element.getAttribute("data-audit-id") ?? String(Math.random())
       element.setAttribute("data-audit-id", marked)
       return marked
     })
-    if (seen.has(id)) break
+    const focusProblems = await measure(page, "focus")
+    if (seen.has(id)) {
+      problems.push(...focusProblems.filter((problem) => problem.includes("without focus")))
+      wrapped = true
+      break
+    }
     seen.add(id)
+    if (within) await expect(within.locator(":focus")).toHaveCount(1)
     const role = (await focused.ariaSnapshot()).split("\n")[0]
     if (!/"[^"]+"/.test(role)) problems.push(`unnamed stop: ${role}`)
-    problems.push(...(await measure(page, "focus")))
+    problems.push(...focusProblems)
+    await page.keyboard.press("Tab")
   }
-  await page.locator("#audit-start").evaluate((start) => start.remove())
+  await page.evaluate(() => {
+    document.getElementById("audit-start")?.remove()
+    for (const element of document.querySelectorAll("[data-audit-id], [data-audit-ring]")) {
+      element.removeAttribute("data-audit-id")
+      element.removeAttribute("data-audit-ring")
+    }
+  })
+  expect(wrapped, `tab stops on ${page.url()} ended within ${MAX_STOPS}`).toBe(true)
   expect(seen.size, `tab stops on ${page.url()}`).toBeGreaterThan(0)
   expect.soft(problems, `tab stops on ${page.url()}`).toEqual([])
 }
@@ -109,10 +161,9 @@ export async function auditPage(page: Page) {
   await expectEveryStopNamedAndVisible(page)
 }
 
-// Presses Tab (or Shift+Tab) until the target has focus, proving it is reachable by keyboard.
 export async function tabTo(page: Page, target: Locator, { backwards = false } = {}) {
-  for (let step = 0; step < 80; step++) {
-    if (await target.evaluate((element) => element === document.activeElement).catch(() => false)) return
+  for (let step = 0; step < MAX_STOPS; step++) {
+    if (await target.evaluate((element) => element === document.activeElement, undefined, { timeout: 5_000 })) return
     await page.keyboard.press(backwards ? "Shift+Tab" : "Tab")
   }
   throw new Error(`Couldn't reach ${target} with the keyboard`)

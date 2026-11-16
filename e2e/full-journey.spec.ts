@@ -1,17 +1,8 @@
-import { expect, test, type BrowserContext, type Page } from "@playwright/test"
-import { createExchange } from "./helpers"
+import type { BrowserContext, Page } from "@playwright/test"
+import { expect, test } from "./fixtures"
+import { createExchange, fillWishlist, joinFromNewDevice } from "./helpers"
 
 type Person = { name: string; page: Page; personalLink: string }
-
-async function fillWishlist(page: Page, name: string) {
-  // Submitting before hydration falls back to a native GET, so let scripts finish first.
-  await page.waitForLoadState("networkidle")
-  for (const position of [1, 2, 3]) {
-    await page.getByRole("group", { name: `Item ${position}` }).getByLabel("Name", { exact: true }).fill(`${name}'s gift ${position}`)
-  }
-  await page.getByRole("button", { name: "Save Wishlist" }).click()
-  await expect(page.getByRole("heading", { name: "You're Ready" })).toBeVisible()
-}
 
 test("the whole Exchange, from creating it to every reveal, across separate devices", async ({ page, browser }) => {
   test.setTimeout(180_000)
@@ -29,18 +20,12 @@ test("the whole Exchange, from creating it to every reveal, across separate devi
     const people: Person[] = [{ name: "Mia", page, personalLink: hostPersonalLink }]
 
     for (const name of ["Ana", "Ben", "Cara"]) {
-      const context = await browser.newContext()
-      contexts.push(context)
-      const friend = await context.newPage()
-      await friend.goto(`/join/${accessCode}`)
-      await expect(friend.getByRole("heading", { name: "Office Secret Santa" })).toBeVisible()
-      await friend.getByLabel("Display name").fill(name)
-      await friend.getByRole("button", { name: "Join", exact: true }).click()
-      const personalLink = await friend.getByRole("textbox", { name: "Personal Link" }).inputValue()
-      await friend.getByRole("link", { name: "Go to my page" }).click()
-      await expect(friend).toHaveURL(exchangeUrl)
-      await fillWishlist(friend, name)
-      people.push({ name, page: friend, personalLink })
+      const person = await joinFromNewDevice(browser, accessCode, name)
+      contexts.push(person.context)
+      await person.page.getByRole("link", { name: "Go to my page" }).click()
+      await expect(person.page).toHaveURL(exchangeUrl)
+      await fillWishlist(person.page, name)
+      people.push(person)
     }
 
     await page.getByRole("navigation", { name: "Switch role" }).getByRole("link", { name: "Host dashboard" }).click()

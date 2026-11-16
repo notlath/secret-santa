@@ -74,18 +74,24 @@ body {
   transform: scale(0.97);
 }
 
-[data-slot][data-pending] {
-  cursor: progress;
-}
-
-[data-slot][data-pending]::before {
+/* ::before, because on coarse pointers ui-sdk draws a button's enlarged hit area in ::after.
+   Shown after ui-sdk's own 150ms pending delay, so quick actions don't flicker. */
+button[data-slot][data-pending]::before {
   content: "";
   width: 1em;
   height: 1em;
   border: 2px solid currentColor;
   border-inline-end-color: transparent;
   border-radius: 9999px;
-  animation: spin 600ms linear infinite;
+  animation:
+    appear 0s 150ms both,
+    spin 600ms linear 150ms infinite;
+}
+
+@keyframes appear {
+  from {
+    display: none;
+  }
 }
 
 @keyframes spin {
@@ -100,7 +106,6 @@ body {
   }
 }
 
-/* Only set after a pointer opening without reduced motion; keyboard openings stay instant. */
 [data-entrance],
 [data-entrance] li {
   animation: rise 300ms var(--ease-out) both;
@@ -159,7 +164,9 @@ body {
   [data-slot="button"]:active:not([data-disabled]) {
     transform: none;
   }
-  [data-slot][data-pending]::before {
-    animation: pulse 1s ease-in-out infinite;
+  button[data-slot][data-pending]::before {
+    animation:
+      appear 0s 150ms both,
+      pulse 1s ease-in-out 150ms infinite;
   }
 }
