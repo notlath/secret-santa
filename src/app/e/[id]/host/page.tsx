@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { CopyButton } from "@/components/copy-button"
 import { EventDetailsList } from "@/components/event-details-list"
 import { Explanation } from "@/components/explanation"
+import { LiveRefresh } from "@/components/live-refresh"
 import { RoleSwitcher } from "@/components/role-switcher"
 import { ReadyBadge } from "@/components/ready-badge"
 import { ReadyMeter } from "@/components/ready-meter"
@@ -33,6 +34,7 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+      <LiveRefresh exchangeId={id} role="host" snapshot={JSON.stringify(exchange)} />
       <RoleSwitcher exchangeId={id} current="host" />
       <header className="flex flex-col gap-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-pine">Host dashboard</p>
