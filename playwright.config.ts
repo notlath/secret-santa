@@ -19,10 +19,10 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {
-    command: `pnpm exec next dev --port ${port}`,
+    command: `node scripts/prepare-e2e.mjs && pnpm exec next dev --port ${port}`,
     url: baseURL,
     reuseExistingServer: false,
     timeout: 120_000,
-    env: { ...testDatabaseEnv(), NEXT_TELEMETRY_DISABLED: "1" },
+    env: { ...testDatabaseEnv(), E2E_TEST: "1", NEXT_TELEMETRY_DISABLED: "1" },
   },
 })
