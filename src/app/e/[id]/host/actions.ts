@@ -3,7 +3,7 @@
 import { cookies } from "next/headers"
 import type { EventDetailsInput } from "@/lib/exchange-details"
 import { hostCookieName } from "@/server/credentials"
-import { closeRegistration, draw, reopenRegistration, updateEventDetails, removeParticipant, reissuePersonalLink } from "@/server/exchange"
+import { closeRegistration, deleteExchange, draw, markCompleted, reopenRegistration, updateEventDetails, removeParticipant, reissuePersonalLink } from "@/server/exchange"
 
 export async function manageParticipantAction(exchangeId: string, participantId: string, operation: "remove" | "reissue") {
   const token = (await cookies()).get(hostCookieName(exchangeId))?.value
@@ -57,4 +57,17 @@ export async function drawAction(exchangeId: string): Promise<{ ok: true } | { o
     case "not_everyone_ready": return { ok: false, message: "Everyone must be Ready before the Draw. Refresh to see who is missing." }
     default: return { ok: false, message: "Close registration before starting the Draw." }
   }
+}
+
+export async function finishExchangeAction(
+  exchangeId: string,
+  operation: "complete" | "delete",
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const token = (await cookies()).get(hostCookieName(exchangeId))?.value
+  const result = await (operation === "complete" ? markCompleted(token) : deleteExchange(token))
+  if (result.ok) return { ok: true }
+  if (result.error.code === "invalid_credential") {
+    return { ok: false, message: "This device no longer has the Host Link. Open it again to continue." }
+  }
+  return { ok: false, message: "The Exchange has changed. Refresh the page to see its current Status." }
 }

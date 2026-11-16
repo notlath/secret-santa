@@ -12,6 +12,7 @@ import { hostView } from "@/server/exchange"
 import { requestLocale } from "@/server/request-locale"
 import { RegistrationControls } from "./registration-controls"
 import { EventDetailsEditor } from "./event-details-editor"
+import { FinishControls } from "./finish-controls"
 import { ParticipantControls } from "./participant-controls"
 
 export const metadata = { title: "Host dashboard · Gift Exchange" }
@@ -119,6 +120,8 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
           <EventDetailsList details={exchange.eventDetails} locale={locale} />
         </EventDetailsEditor>
       </section>
+
+      <FinishControls exchangeId={exchange.id} status={exchange.status} />
     </main>
   )
 }
