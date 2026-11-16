@@ -29,6 +29,13 @@
       "when": 1794836357049,
       "tag": "0003_condemned_nekra",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794850021937,
+      "tag": "0004_condemned_prima",
+      "breakpoints": true
     }
   ]
 }

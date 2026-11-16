@@ -57,6 +57,8 @@ export const participant = pgTable(
     personalTokenHash: text("personal_token_hash").notNull().unique(),
     revealedAt: timestamp("revealed_at", { withTimezone: true }),
     recipientChanged: boolean("recipient_changed").notNull().default(false),
+    // Who left, so the reveal can explain a changed Recipient after that Participant's row is gone.
+    recipientChangedBecause: text("recipient_changed_because"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [unique("participant_exchange_name_unique").on(t.exchangeId, t.normalizedDisplayName)],

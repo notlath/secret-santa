@@ -24,7 +24,8 @@ describe("Participant management", () => {
     expect(view.ok && view.value.me).toMatchObject({ displayName: "Ben", wishlist: [{ name: "Book" }] })
   })
   for (const operation of [removeParticipant, reissuePersonalLink]) {
-    for (const status of ["open", "closed", "assigned", "completed"] as const) {
+    // Removal in `assigned` closes the gap; remove-after-draw.test.ts covers it.
+    for (const status of (["open", "closed", "assigned", "completed"] as const).filter((status) => operation !== removeParticipant || status !== "assigned")) {
       it(`${operation.name} enforces role and ${status} status`, async () => {
         const exchange = await created()
         const person = await joined(exchange.accessCode, "Ben")

@@ -117,7 +117,7 @@ test("a reveal is private to its Participant and contains only their Recipient's
     if (!view.ok) throw new Error("Reveal failed")
     const recipient = exchange.people.find((other) => other.participant.id === view.value.recipient.id)!
     expect(view.value).toEqual({
-      id: exchange.exchange.id, name: "Office Secret Santa", status: "assigned", revealedAt: null,
+      id: exchange.exchange.id, name: "Office Secret Santa", status: "assigned", revealedAt: null, recipientChangedBecause: null,
       recipient: { id: recipient.participant.id, displayName: recipient.participant.displayName, wishlist: [
         { position: 1, name: `${recipient.participant.displayName}'s book`, description: `${recipient.participant.displayName}'s description`, productLink: `https://example.com/${recipient.participant.displayName}` },
         { position: 2, name: `${recipient.participant.displayName}'s mug`, description: null, productLink: null },

@@ -34,6 +34,11 @@ export default async function RevealPage({ params }: PageProps<"/e/[id]/reveal">
         <p className="text-sm font-semibold uppercase tracking-wider text-pine">A little secret, just for you</p>
         <h1 className="font-display text-3xl text-ink [overflow-wrap:anywhere] sm:text-4xl">{exchange.name}</h1>
       </header>
+      {exchange.recipientChangedBecause && (
+        <p role="status" className="rounded-xl border-2 border-gold bg-paper px-4 py-3 text-ink [overflow-wrap:anywhere]">
+          Your Recipient changed because {exchange.recipientChangedBecause} left
+        </p>
+      )}
       <GiftReveal exchangeId={id} alreadyOpened={exchange.revealedAt !== null} recipient={exchange.recipient} />
       <section aria-labelledby="event" className="flex flex-col gap-4">
         <h2 id="event" className="font-display text-xl text-ink">Event Details</h2>

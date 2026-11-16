@@ -8,7 +8,7 @@ import { CopyButton } from "@/components/copy-button"
 import { useHydrated } from "@/hooks/use-hydrated"
 import { manageParticipantAction } from "./actions"
 
-export function ParticipantControls({ exchangeId, participantId, name }: { exchangeId: string; participantId: string; name: string }) {
+export function ParticipantControls({ exchangeId, participantId, name, drawn, remaining }: { exchangeId: string; participantId: string; name: string; drawn: boolean; remaining: number }) {
   const hydrated = useHydrated()
   const router = useRouter()
   const [link, setLink] = useState<string>()
@@ -31,13 +31,18 @@ export function ParticipantControls({ exchangeId, participantId, name }: { excha
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
-        <Button disabled={!hydrated} onClick={() => manage("reissue")} pendingAnnouncement="Creating a new Personal Link" aria-label={`Re-issue link for ${name}`}>Re-issue link</Button>
+        {!drawn && <Button disabled={!hydrated} onClick={() => manage("reissue")} pendingAnnouncement="Creating a new Personal Link" aria-label={`Re-issue link for ${name}`}>Re-issue link</Button>}
         <AlertDialog pendingAnnouncement="Removing Participant">
           <AlertDialogTrigger render={<Button disabled={!hydrated} aria-label={`Remove ${name}`} />}>Remove</AlertDialogTrigger>
           <AlertDialogBackdrop />
           <AlertDialogContent>
             <AlertDialogTitle className="font-display text-xl">Remove {name}?</AlertDialogTitle>
-            <AlertDialogDescription>Their Wishlist will be deleted and their Personal Link will stop working.</AlertDialogDescription>
+            <AlertDialogDescription>
+              {drawn
+                ? "Their Personal Link will stop working. The person who was giving to them will give to their Recipient instead, and will open their reveal again."
+                : "Their Wishlist will be deleted and their Personal Link will stop working."}
+            </AlertDialogDescription>
+            {drawn && remaining === 3 && <p className="font-semibold text-cranberry">Only 2 left, both will know who has them.</p>}
             <p role="alert" className="text-cranberry">{message}</p>
             <div className="flex flex-wrap justify-end gap-3">
               <AlertDialogClose render={<Button />}>Cancel</AlertDialogClose>

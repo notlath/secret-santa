@@ -8,7 +8,7 @@ import {
   type EventDetailsInput,
   type ExchangeDetailsInput,
 } from "@/lib/exchange-details"
-import { draw as drawCircle, isDerangement } from "@/lib/draw/draw"
+import { closeGap, draw as drawCircle, isDerangement } from "@/lib/draw/draw"
 import { isReady, validateWishlist, WISHLIST_SIZE, type WishlistItem, type WishlistItemInput } from "@/lib/wishlist"
 import { generateLinkToken, hashLinkToken } from "@/server/credentials"
 import { db } from "@/server/db"
@@ -198,13 +198,14 @@ export type RevealView = {
   name: string
   status: ExchangeStatus
   revealedAt: Date | null
+  recipientChangedBecause: string | null
   recipient: { id: string; displayName: string; wishlist: WishlistItem[] }
   eventDetails: EventDetails
 }
 
 export async function revealView(personalToken: string | undefined): Promise<Result<RevealView>> {
   if (!personalToken) return fail({ code: "invalid_credential" })
-  const [caller] = await db.select({ exchange, id: participant.id, revealedAt: participant.revealedAt })
+  const [caller] = await db.select({ exchange, id: participant.id, revealedAt: participant.revealedAt, changedBecause: participant.recipientChangedBecause })
     .from(participant).innerJoin(exchange, eq(exchange.id, participant.exchangeId))
     .where(eq(participant.personalTokenHash, hashLinkToken(personalToken)))
   if (!caller) return fail({ code: "invalid_credential" })
@@ -216,7 +217,7 @@ export async function revealView(personalToken: string | undefined): Promise<Res
   const { wishlist } = await meOf(db, recipient)
   return ok({
     id: caller.exchange.id, name: caller.exchange.name, status: caller.exchange.status,
-    revealedAt: caller.revealedAt, recipient: { ...recipient, wishlist }, eventDetails: eventDetailsOf(caller.exchange),
+    revealedAt: caller.revealedAt, recipientChangedBecause: caller.changedBecause, recipient: { ...recipient, wishlist }, eventDetails: eventDetailsOf(caller.exchange),
   })
 }
 
@@ -244,9 +245,26 @@ export async function removeParticipant(hostToken: string | undefined, participa
   if (!current) return fail({ code: "invalid_credential" })
   return db.transaction(async (tx) => {
     const [row] = await tx.select({ status: exchange.status }).from(exchange).where(eq(exchange.id, current.id)).for("update")
-    if (row.status !== "open" && row.status !== "closed") return fail({ code: "invalid_transition" })
-    const [removed] = await tx.delete(participant).where(and(eq(participant.id, participantId), eq(participant.exchangeId, current.id))).returning({ id: participant.id })
-    return removed ? ok(null) : fail({ code: "not_found" })
+    if (row.status !== "open" && row.status !== "closed" && row.status !== "assigned") return fail({ code: "invalid_transition" })
+    const [removed] = await tx.select({ id: participant.id, displayName: participant.displayName }).from(participant)
+      .where(and(eq(participant.id, participantId), eq(participant.exchangeId, current.id)))
+    if (!removed) return fail({ code: "not_found" })
+    if (row.status === "assigned") {
+      const assignments = await tx.select({ giverId: assignment.giverId, recipientId: assignment.recipientId }).from(assignment)
+        .where(eq(assignment.exchangeId, current.id))
+      if (assignments.length <= 2) return fail({ code: "too_few_participants" })
+      const giver = assignments.find((pair) => pair.recipientId === removed.id)!
+      const takenOver = closeGap(assignments, removed.id).find((pair) => pair.giverId === giver.giverId)!
+      // Deleting the Participant cascades both of their Assignments, freeing the Recipient for the Giver.
+      await tx.delete(participant).where(eq(participant.id, removed.id))
+      await tx.insert(assignment).values({ ...takenOver, exchangeId: current.id })
+      await tx.update(participant)
+        .set({ revealedAt: null, recipientChanged: true, recipientChangedBecause: removed.displayName })
+        .where(eq(participant.id, giver.giverId))
+      return ok(null)
+    }
+    await tx.delete(participant).where(eq(participant.id, removed.id))
+    return ok(null)
   })
 }
 
