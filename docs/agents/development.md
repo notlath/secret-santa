@@ -6,6 +6,10 @@ Use pnpm with the versions pinned in package.json and the lockfile. After instal
 
 For the Gift Exchange MVP, `gift-exchange-mvp` is the integration branch. Create ticket branches from it unless the user names another base. Commit work on the ticket branch. Merge or start another ticket only when authorized. The ticket's explicit stopping conditions take precedence.
 
+Before the first implementation slice, identify the ticket and spec's required architectural boundaries and mechanisms alongside the behavior to test. Use those requirements when choosing the implementation and review seams.
+
+For a behavior-changing review fix, first demonstrate the gap with a failing test at an agreed public seam when one can exercise it. Then implement the fix and rerun the test.
+
 The integration owner updates ticket Status fields. Implementation agents leave those fields unchanged. Git and the current user request establish branch state; temporary handoffs can contain older checkpoints.
 
 ## Database access
@@ -41,3 +45,5 @@ Read the relevant installed Next guide under node_modules/next/dist/docs before 
 Consult references in bounded sections and reuse material already read in the session. For a failing check, inspect its exact error before widening the investigation.
 
 For client controls that need JavaScript, reuse `delayedPage` and `expectNativeDisabled` from `e2e/fixtures.ts` to exercise the server-rendered state and then release scripts. Native behavior such as form submission requires the native disabled attribute before hydration; an ARIA-only assertion does not establish that protection. `openAndExpectMotion` separately exercises normal pointer, reduced-motion pointer and keyboard activation, including a preference change after the page has mounted.
+
+For visibility-aware polling, use `observeRequests` and `setPageVisibility` from `e2e/fixtures.ts` to verify that requests stop while hidden and resume on return, alongside assertions on the displayed data.

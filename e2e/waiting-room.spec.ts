@@ -1,5 +1,6 @@
 import { expect, test, type Browser } from "@playwright/test"
 import { createExchange } from "./helpers"
+import { observeRequests, setPageVisibility } from "./fixtures"
 
 async function join(browser: Browser, code: string, name: string) {
   const context = await browser.newContext()
@@ -19,22 +20,14 @@ test("waiting room and Host dashboard update as Participants join", async ({ pag
   const mia = await join(browser, accessCode, "Mia")
   await expect(mia.page.getByRole("list", { name: "Participants" })).toContainText("Mia")
   await mia.page.getByRole("group", { name: "Item 1" }).getByLabel("Name").fill("Unfinished draft")
-  await mia.page.evaluate(() => {
-    Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" })
-    document.dispatchEvent(new Event("visibilitychange"))
-  })
-  let hiddenPolls = 0
-  mia.page.on("request", (request) => {
-    if (request.url().includes("/view/participant")) hiddenPolls++
-  })
+  await setPageVisibility(mia.page, "hidden")
+  const hiddenPolls = observeRequests(mia.page, (request) => request.url().includes("/view/participant"))
   const ben = await join(browser, accessCode, "Ben")
   await mia.page.waitForTimeout(11000)
-  expect(hiddenPolls).toBe(0)
+  expect(hiddenPolls.requests).toHaveLength(0)
+  hiddenPolls.stop()
   await expect(mia.page.getByRole("list", { name: "Participants" })).not.toContainText("Ben")
-  await mia.page.evaluate(() => {
-    Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" })
-    document.dispatchEvent(new Event("visibilitychange"))
-  })
+  await setPageVisibility(mia.page, "visible")
   await expect(mia.page.getByRole("list", { name: "Participants" })).toContainText("Ben", { timeout: 20000 })
   await expect(page.getByRole("list", { name: "Participants" })).toContainText("Ben", { timeout: 20000 })
   await expect(mia.page.getByRole("group", { name: "Item 1" }).getByLabel("Name")).toHaveValue("Unfinished draft")

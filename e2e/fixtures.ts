@@ -1,4 +1,4 @@
-import { expect, test as base, type Locator, type Page } from "@playwright/test"
+import { expect, test as base, type Locator, type Page, type Request } from "@playwright/test"
 
 export const test = base.extend<{ delayedPage: { page: Page; release: () => void } }>({
   delayedPage: async ({ context }, provide) => {
@@ -20,6 +20,20 @@ export const test = base.extend<{ delayedPage: { page: Page; release: () => void
 })
 
 export { expect }
+
+export async function setPageVisibility(page: Page, state: "hidden" | "visible") {
+  await page.evaluate((value) => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, value })
+    document.dispatchEvent(new Event("visibilitychange"))
+  }, state)
+}
+
+export function observeRequests(page: Page, matches: (request: Request) => boolean) {
+  const requests: Request[] = []
+  const listener = (request: Request) => { if (matches(request)) requests.push(request) }
+  page.on("request", listener)
+  return { requests, stop: () => page.off("request", listener) }
+}
 
 export async function expectNativeDisabled(control: Locator) {
   await expect(control).toBeDisabled()
