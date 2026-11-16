@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/status-badge"
 import { hostCookieName } from "@/server/credentials"
 import { hostView } from "@/server/exchange"
 import { requestLocale } from "@/server/request-locale"
+import { EventDetailsEditor } from "./event-details-editor"
 
 export const metadata = { title: "Host dashboard · Gift Exchange" }
 
@@ -83,7 +84,13 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
         <h2 id="event" className="font-display text-xl text-ink">
           Event Details
         </h2>
-        <EventDetailsList details={exchange.eventDetails} locale={locale} />
+        <EventDetailsEditor
+          exchangeId={exchange.id}
+          details={exchange.eventDetails}
+          editable={exchange.status !== "completed"}
+        >
+          <EventDetailsList details={exchange.eventDetails} locale={locale} />
+        </EventDetailsEditor>
       </section>
     </main>
   )
