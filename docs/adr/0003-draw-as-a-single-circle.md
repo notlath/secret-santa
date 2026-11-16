@@ -1,0 +1,3 @@
+# The Draw is a single circle
+
+The Draw shuffles Participants with Fisher–Yates, using a cryptographically secure random source, and has each one give to the next, the last giving to the first. It is never a general derangement. One circle means nobody draws themselves and, with three or more Participants, nobody draws each other. It also lets a Participant who drops out after the Draw be removed by handing their Recipient to their Giver, which changes exactly one Giver's Recipient and keeps the circle whole. A general derangement can contain two-person swaps, where that repair would make someone their own Recipient. The accepted trade-off: not every derangement can come out of the Draw.

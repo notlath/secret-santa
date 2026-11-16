@@ -1,0 +1,3 @@
+# Secret links instead of accounts
+
+Participants and Hosts have no accounts. Each Participant is identified by a Personal Link: a long random token in a URL, also kept in a cookie on the device that used it. A separate Host Link grants the Host role for one Exchange, and a Host who also joins holds both. Whoever holds a link is that identity, so the server stores only a hash of each token, and the Host can re-issue a lost Personal Link, which stops the old one working. We chose this over PINs or email login because friends join from a group chat in seconds, links can't be guessed the way PINs can, and the Host can recover anyone except themselves. The accepted trade-off: a Host who re-issues someone's link could see that person's Assignment.

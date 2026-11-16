@@ -1,0 +1,3 @@
+# Neon Postgres with server-only data access
+
+All data lives in Neon Postgres, reached only from Next.js server code through Drizzle. The browser never queries the database. Every read of an Assignment or a Wishlist goes through a server route that first checks the caller's Personal Link or Host Link, so the full Assignment mapping can only leak through code we control, not through a misconfigured policy. Supabase was considered and rejected: its Auth doesn't fit link-based identity (ADR-0001), Row Level Security only matters when the browser queries the database directly, and free projects pause after about a week without use, which is a real risk for an app people open a few weeks a year.
