@@ -1,14 +1,25 @@
 "use client"
 
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogBackdrop,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogClose,
+} from "@ui-sdk/react/alert-dialog"
 import { Button } from "@ui-sdk/react/button"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { useHydrated } from "@/hooks/use-hydrated"
 import type { HostView } from "@/server/exchange"
-import { changeRegistrationAction } from "./actions"
+import { changeRegistrationAction, drawAction } from "./actions"
 
 type Props = Pick<HostView, "status" | "participants"> & { exchangeId: string }
 
 export function RegistrationControls({ exchangeId, status, participants }: Props) {
+  const hydrated = useHydrated()
   const router = useRouter()
   const [feedback, setFeedback] = useState<{ error: boolean; message: string } | null>(null)
   if (status !== "open" && status !== "closed") return null
@@ -18,6 +29,23 @@ export function RegistrationControls({ exchangeId, status, participants }: Props
   if (participants.length < 3) missing.push(`At least 3 Participants are needed (${participants.length} joined).`)
   const notReady = participants.filter((person) => !person.ready)
   if (notReady.length > 0) missing.push(`Not Ready: ${notReady.map((person) => person.displayName).join(", ")}.`)
+
+  async function runDraw() {
+    setFeedback(null)
+    let result
+    try {
+      result = await drawAction(exchangeId)
+    } catch {
+      const message = "Couldn't run the Draw. Please try again."
+      setFeedback({ error: true, message })
+      throw new Error(message)
+    }
+    if (!result.ok) {
+      setFeedback({ error: true, message: result.message })
+      throw new Error(result.message)
+    }
+    router.refresh()
+  }
 
   async function changeRegistration() {
     setFeedback(null)
@@ -38,7 +66,7 @@ export function RegistrationControls({ exchangeId, status, participants }: Props
       <p className="text-muted-ink">
         {status === "open" ? "Close registration when everyone has joined. You can reopen it for a late friend." : "New friends can't join while registration is closed. Participants can still edit their Wishlists."}
       </p>
-      <Button className="self-start" onClick={changeRegistration} pendingAnnouncement="Changing registration">
+      <Button disabled={!hydrated} className="self-start" onClick={changeRegistration} pendingAnnouncement="Changing registration">
         {status === "open" ? "Close registration" : "Reopen registration"}
       </Button>
       <p role="status" className={feedback?.error ? "text-cranberry" : "text-pine"}>{feedback?.message}</p>
@@ -47,9 +75,21 @@ export function RegistrationControls({ exchangeId, status, participants }: Props
           <ul className="flex list-inside list-disc flex-col gap-2">
             {missing.map((reason) => <li key={reason} className="[overflow-wrap:anywhere]">{reason}</li>)}
           </ul>
-        ) : <p>Everyone is Ready. Starting the Draw is coming soon.</p>}
+        ) : <p>Everyone is Ready. You can start the Draw.</p>}
       </div>
-      <Button disabled focusableWhenDisabled aria-describedby="draw-requirements" className="self-start">Start Draw</Button>
+      <AlertDialog pendingAnnouncement="Running the Draw">
+        <AlertDialogTrigger render={<Button disabled={!hydrated || missing.length > 0} focusableWhenDisabled={hydrated} aria-describedby="draw-requirements" className="self-start" />}>Start Draw</AlertDialogTrigger>
+        <AlertDialogBackdrop />
+        <AlertDialogContent>
+          <AlertDialogTitle className="font-display text-xl">Draw for {participants.length} participants?</AlertDialogTitle>
+          <AlertDialogDescription>This can&apos;t be undone.</AlertDialogDescription>
+          <p role="alert" className="text-cranberry">{feedback?.error ? feedback.message : null}</p>
+          <div className="flex flex-wrap justify-end gap-3">
+            <AlertDialogClose render={<Button />}>Cancel</AlertDialogClose>
+            <AlertDialogClose value="confirm" action={runDraw} render={<Button data-variant="solid" />}>Draw now</AlertDialogClose>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   )
 }
