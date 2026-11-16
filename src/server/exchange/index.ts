@@ -8,10 +8,11 @@ import {
   type EventDetailsInput,
   type ExchangeDetailsInput,
 } from "@/lib/exchange-details"
+import { draw as drawCircle, isDerangement } from "@/lib/draw/draw"
 import { isReady, validateWishlist, WISHLIST_SIZE, type WishlistItem, type WishlistItemInput } from "@/lib/wishlist"
 import { generateLinkToken, hashLinkToken } from "@/server/credentials"
 import { db } from "@/server/db"
-import { exchange, participant, wishlistItem } from "@/server/db/schema"
+import { assignment, exchange, participant, wishlistItem } from "@/server/db/schema"
 import { fail, ok, type Result } from "./errors"
 
 export type { ExchangeError, Result } from "./errors"
@@ -38,7 +39,7 @@ export type HostView = {
   accessCode: string
   maxParticipants: number
   eventDetails: EventDetails
-  participants: { id: string; displayName: string; ready: boolean }[]
+  participants: { id: string; displayName: string; ready: boolean; revealedAt: Date | null }[]
 }
 
 export type ExchangePreview = {
@@ -142,7 +143,7 @@ export async function hostView(hostToken: string | undefined): Promise<Result<Ho
     maxParticipants: row.maxParticipants,
     eventDetails: eventDetailsOf(row),
     participants: await db
-      .select({ id: participant.id, displayName: participant.displayName, ready: readySql })
+      .select({ id: participant.id, displayName: participant.displayName, ready: readySql, revealedAt: participant.revealedAt })
       .from(participant)
       .where(eq(participant.exchangeId, row.id))
       .orderBy(asc(participant.createdAt), asc(participant.id)),
@@ -166,6 +167,67 @@ export async function updateEventDetails(
     .returning()
   if (!row) return fail({ code: "invalid_transition" })
   return ok({ eventDetails: eventDetailsOf(row) })
+}
+
+export async function draw(hostToken: string | undefined): Promise<Result<{ status: ExchangeStatus }>> {
+  const current = await findByHostToken(hostToken)
+  if (!current) return fail({ code: "invalid_credential" })
+  return db.transaction(async (tx) => {
+    const [row] = await tx.select({ status: exchange.status }).from(exchange)
+      .where(eq(exchange.id, current.id)).for("update")
+    if (row.status === "assigned" || row.status === "completed") return fail({ code: "already_drawn" })
+    if (row.status !== "closed") return fail({ code: "invalid_transition" })
+    const people = await tx.select({ id: participant.id, ready: readySql }).from(participant)
+      .where(eq(participant.exchangeId, current.id))
+    if (people.length < 3) return fail({ code: "too_few_participants" })
+    if (people.some((person) => !person.ready)) return fail({ code: "not_everyone_ready" })
+    const [updated] = await tx.update(exchange).set({ status: "assigned", updatedAt: new Date() })
+      .where(and(eq(exchange.id, current.id), eq(exchange.status, "closed"))).returning({ status: exchange.status })
+    if (!updated) return fail({ code: "already_drawn" })
+    const ids = people.map((person) => person.id)
+    const assignments = drawCircle(ids)
+    if (!isDerangement(ids, assignments)) throw new Error("The Draw did not produce valid Assignments")
+    await tx.insert(assignment).values(assignments.map((pair) => ({ ...pair, exchangeId: current.id })))
+    return ok(updated)
+  })
+}
+
+export type RevealView = {
+  id: string
+  name: string
+  status: ExchangeStatus
+  revealedAt: Date | null
+  recipient: { id: string; displayName: string; wishlist: WishlistItem[] }
+  eventDetails: EventDetails
+}
+
+export async function revealView(personalToken: string | undefined): Promise<Result<RevealView>> {
+  if (!personalToken) return fail({ code: "invalid_credential" })
+  const [caller] = await db.select({ exchange, id: participant.id, revealedAt: participant.revealedAt })
+    .from(participant).innerJoin(exchange, eq(exchange.id, participant.exchangeId))
+    .where(eq(participant.personalTokenHash, hashLinkToken(personalToken)))
+  if (!caller) return fail({ code: "invalid_credential" })
+  if (caller.exchange.status !== "assigned" && caller.exchange.status !== "completed") return fail({ code: "invalid_transition" })
+  const [recipient] = await db.select({ id: participant.id, displayName: participant.displayName })
+    .from(assignment).innerJoin(participant, eq(participant.id, assignment.recipientId))
+    .where(and(eq(assignment.exchangeId, caller.exchange.id), eq(assignment.giverId, caller.id)))
+  if (!recipient) return fail({ code: "not_found" })
+  const { wishlist } = await meOf(db, recipient)
+  return ok({
+    id: caller.exchange.id, name: caller.exchange.name, status: caller.exchange.status,
+    revealedAt: caller.revealedAt, recipient: { ...recipient, wishlist }, eventDetails: eventDetailsOf(caller.exchange),
+  })
+}
+
+export async function markRevealed(personalToken: string | undefined): Promise<Result<{ revealedAt: Date | null }>> {
+  const view = await revealView(personalToken)
+  if (!view.ok) return view
+  if (view.value.status === "completed") return ok({ revealedAt: view.value.revealedAt })
+  const [row] = await db.update(participant)
+    .set({ revealedAt: sql`coalesce(${participant.revealedAt}, now())` })
+    .where(eq(participant.personalTokenHash, hashLinkToken(personalToken!)))
+    .returning({ revealedAt: participant.revealedAt })
+  return row ? ok(row) : fail({ code: "invalid_credential" })
 }
 
 export async function closeRegistration(hostToken: string | undefined): Promise<Result<{ status: ExchangeStatus }>> {

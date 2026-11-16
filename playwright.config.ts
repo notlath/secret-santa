@@ -1,10 +1,10 @@
 import path from "node:path"
 import { defineConfig, devices } from "@playwright/test"
+import { artifactPaths, createRunId } from "./scripts/artifacts.mjs"
 import { testDatabaseEnv } from "./test/test-database"
 
-// The config is evaluated again in each worker, which inherits process.env, so
-// the port and test schema chosen here stay the same for the whole run.
-process.env.E2E_PORT ??= String(4000 + Math.floor(Math.random() * 1000))
+if (!process.env.E2E_PORT) throw new Error("Run pnpm test:e2e to select an available, non-reserved port.")
+process.env.E2E_RUN_ID ??= createRunId()
 const port = Number(process.env.E2E_PORT)
 const baseURL = `http://localhost:${port}`
 
@@ -12,6 +12,7 @@ export default defineConfig({
   testDir: "./e2e",
   testIgnore: [`${path.resolve(import.meta.dirname, ".claude")}/**`],
   fullyParallel: true,
+  outputDir: artifactPaths(process.cwd(), process.env.E2E_RUN_ID).e2e,
   globalSetup: "./test/playwright-global-setup.ts",
   use: { baseURL, locale: "en-US", timezoneId: "America/New_York", trace: "retain-on-failure" },
   projects: [

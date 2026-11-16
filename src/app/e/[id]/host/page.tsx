@@ -83,6 +83,22 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
         )}
       </section>
 
+      {(exchange.status === "assigned" || exchange.status === "completed") && (
+        <section aria-labelledby="reveals" className="flex flex-col gap-4 rounded-2xl border-2 border-pine bg-paper p-5">
+          <h2 id="reveals" className="font-display text-xl text-pine">Reveals</h2>
+          <p>The Draw is complete. Ask everyone to open their reveal.</p>
+          <p className="font-semibold tabular-nums">{exchange.participants.filter((person) => person.revealedAt).length} of {exchange.participants.length} have seen their Recipient</p>
+          <ul className="flex flex-col gap-3">
+            {exchange.participants.map((person) => (
+              <li key={person.id} className="flex flex-wrap justify-between gap-2 [overflow-wrap:anywhere]">
+                <span>{person.displayName}</span>
+                <span className="text-muted-ink">{person.revealedAt ? "Seen" : "Not seen yet"}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <RegistrationControls exchangeId={exchange.id} status={exchange.status} participants={exchange.participants} />
 
       <section aria-labelledby="event" className="flex flex-col gap-4">

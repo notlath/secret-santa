@@ -78,3 +78,17 @@ export const wishlistItem = pgTable(
     check("wishlist_item_position_check", sql`${t.position} between 1 and 3`),
   ],
 )
+
+export const assignment = pgTable(
+  "assignment",
+  {
+    exchangeId: uuid("exchange_id").notNull().references(() => exchange.id, { onDelete: "cascade" }),
+    giverId: uuid("giver_id").notNull().references(() => participant.id, { onDelete: "cascade" }),
+    recipientId: uuid("recipient_id").notNull().references(() => participant.id, { onDelete: "cascade" }),
+  },
+  (t) => [
+    unique("assignment_exchange_giver_unique").on(t.exchangeId, t.giverId),
+    unique("assignment_exchange_recipient_unique").on(t.exchangeId, t.recipientId),
+    check("assignment_not_self_check", sql`${t.giverId} <> ${t.recipientId}`),
+  ],
+)

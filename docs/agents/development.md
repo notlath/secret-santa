@@ -14,15 +14,19 @@ The integration owner updates ticket Status fields. Implementation agents leave 
 
 Use `TEST_DATABASE_URL` for tests. The test harness creates, migrates and drops a unique Postgres schema per Vitest or Playwright run. Tests must use that harness rather than the application's normal DATABASE_URL. Never weaken isolation to get a test passing.
 
-Schema changes require a Drizzle migration. Inspect generated SQL for schema-qualified `public` references: migrations must run in the test harness's schema. Text columns with check constraints are used for Status instead of Postgres enums for this reason.
+Schema changes require a Drizzle migration. The tooling suite rejects `public`-qualified application table references before database tests: migrations must run in the test harness's schema. Text columns with check constraints are used for Status instead of Postgres enums for this reason.
 
 ## Verification
 
 Run `pnpm verify` before reporting an integration candidate ready. It requires TEST_DATABASE_URL, then runs lint, typecheck, tooling tests, module tests and the complete phone/desktop browser suite, stopping on the first failure. Run focused tests during implementation; full verification includes existing pages that a new component might affect. Passing verification does not authorize a merge.
 
+Verification fingerprints tracked and untracked Git-visible inputs before running checks and after each check. An edit invalidates the result even if every executed check passed. Generated Next files and ignored outputs are excluded. Finish focused fixes and review corrections before the final run, and keep inputs unchanged until it finishes. Edits reverted between snapshots cannot be detected; use an unchanged checkout for final verification.
+
+Each verification run prints its fingerprint and saves a JSON summary plus per-check logs under `test-results/verification/<run-id>/`. Browser output goes to `test-results/e2e/<run-id>/`; focused runs get their own identifiers too, so a later run preserves earlier traces and screenshots. A failed summary identifies the check, exit code, log and browser output directory. Inspect those artifacts and build a focused reproducer for repeated failures before rerunning the full suite. Ports are checked before server startup, but another process can claim one after the probe; in that case inspect startup output and choose another port.
+
 The commit hook runs only lint and typecheck; database and browser checks belong to full verification. To install the hook in another clone, run `pnpm hooks:install` there too. Hook installation is local Git configuration and is not copied by a checkout.
 
-Playwright selects a port (or uses E2E_PORT) and starts its own Next server with E2E_TEST=1. That server owns `.next-e2e`; interactive development owns `.next`. Run one browser suite per checkout; use separate worktrees for parallel suites. Each suite retains its own database schema.
+Use `pnpm test:e2e [spec paths or Playwright flags]` for focused browser checks. Its wrapper selects an available port outside the installed Next reserved-port list, or validates E2E_PORT, then starts its own Next server with E2E_TEST=1. That server owns `.next-e2e`; interactive development owns `.next`. Run one browser suite per checkout; use separate worktrees for parallel suites. Each suite retains its own database schema.
 
 Before the E2E server starts, `scripts/prepare-e2e.mjs` checks its output lock. It preserves a dead process's lock under a stale filename. A live owner or unreadable lock stops startup with an explanation. Inspect that case rather than removing a live server's lock. Interactive `.next` locks are outside this script's scope.
 
@@ -35,3 +39,5 @@ Generated Next, Playwright and worktree output is excluded from lint/typecheckin
 Read the relevant installed Next guide under node_modules/next/dist/docs before changing Next behavior. For ui-sdk controls, start at node_modules/@ui-sdk/react/docs/llms.txt and read the component page. The spec's explicit scope exceptions apply to generic skill defaults, including the excluded ui-sdk agent-ready step.
 
 Consult references in bounded sections and reuse material already read in the session. For a failing check, inspect its exact error before widening the investigation.
+
+For client controls that need JavaScript, reuse `delayedPage` and `expectNativeDisabled` from `e2e/fixtures.ts` to exercise the server-rendered state and then release scripts. Native behavior such as form submission requires the native disabled attribute before hydration; an ARIA-only assertion does not establish that protection. `openAndExpectMotion` separately exercises normal pointer, reduced-motion pointer and keyboard activation, including a preference change after the page has mounted.

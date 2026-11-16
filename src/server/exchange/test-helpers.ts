@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 import { db } from "@/server/db"
 import { exchange } from "@/server/db/schema"
 import { createExchange, join, type ExchangeDetailsInput, type ExchangeStatus } from "."
@@ -34,4 +34,22 @@ export async function joined(accessCode: string, displayName: string) {
   const result = await join(accessCode, displayName)
   if (!result.ok) throw new Error(`join failed: ${JSON.stringify(result.error)}`)
   return result.value
+}
+
+// Fault injection at the database boundary exercises rollback after an Assignment was inserted.
+export async function failSecondAssignmentInsert(exchangeId: string) {
+  await db.execute(sql`create function reject_second_assignment() returns trigger language plpgsql as $$
+    begin
+      if exists (select 1 from assignment where exchange_id = NEW.exchange_id) then
+        raise exception 'Injected Assignment insert failure';
+      end if;
+      return NEW;
+    end;
+  $$`)
+  await db.execute(sql.raw(`create trigger reject_second_assignment before insert on assignment
+    for each row when (NEW.exchange_id = '${exchangeId}') execute function reject_second_assignment()`))
+  return async () => {
+    await db.execute(sql`drop trigger reject_second_assignment on assignment`)
+    await db.execute(sql`drop function reject_second_assignment()`)
+  }
 }

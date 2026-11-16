@@ -4,11 +4,13 @@ import { Button } from "@ui-sdk/react/button"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@ui-sdk/react/field"
 import { Input } from "@ui-sdk/react/input"
 import { useState, type FormEvent } from "react"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { DISPLAY_NAME_MAX, validateDisplayName } from "@/lib/display-name"
 import { joinAction } from "../actions"
 import { SavePersonalLink } from "./save-personal-link"
 
 export function JoinForm({ accessCode }: { accessCode: string }) {
+  const hydrated = useHydrated()
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
   const [pending, setPending] = useState(false)
@@ -44,7 +46,7 @@ export function JoinForm({ accessCode }: { accessCode: string }) {
     <form noValidate onSubmit={submit} className="flex flex-col gap-5">
       <Field name="displayName" invalid={error ? true : undefined}>
         <FieldLabel>Display name</FieldLabel>
-        <Input maxLength={DISPLAY_NAME_MAX} autoComplete="nickname" onValueChange={() => setError("")} />
+        <Input disabled={!hydrated} maxLength={DISPLAY_NAME_MAX} autoComplete="nickname" onValueChange={() => setError("")} />
         <FieldDescription>How the others will see you. You can add your Wishlist after joining.</FieldDescription>
         {error && <FieldError match>{error}</FieldError>}
       </Field>
@@ -53,7 +55,7 @@ export function JoinForm({ accessCode }: { accessCode: string }) {
           {message}
         </p>
       )}
-      <Button type="submit" data-variant="solid" disabled={pending} focusableWhenDisabled className="self-start">
+      <Button type="submit" data-variant="solid" disabled={!hydrated || pending} focusableWhenDisabled={hydrated} className="self-start">
         {pending ? "Joining…" : "Join"}
       </Button>
     </form>
