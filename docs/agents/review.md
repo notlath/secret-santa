@@ -6,7 +6,9 @@ When a change adds roles, live regions or repeated controls to an existing page,
 
 Keep scope judgments separate from deterministic checks. Existing lint/typecheck and browser failures must be resolved before reporting an integration candidate ready. Use the project's documented exceptions when interpreting generic skill rules.
 
-For browser assertions, check whether the test isolates the condition it claims to cover. Exercise reduced motion with pointer activation separately from the keyboard bypass. For each new JavaScript-dependent control, check for coverage with the delayed-script fixture and native disabled behavior before hydration.
+For browser assertions, check whether the test isolates the condition it claims to cover. Exercise reduced motion with pointer activation separately from the keyboard bypass. Also exercise a preference change while an animation is running: switching reduced motion on mid-animation must cancel the motion and clear the state that drives it, so restoring the preference cannot replay it. For each new JavaScript-dependent control, check for coverage with the delayed-script fixture and native disabled behavior before hydration.
+
+When an effect depends on who caused a state transition, inspect local, remote, repeated and concurrent transitions separately. A partial local save must not leave state that animates a later remote update, and a local transition back into a state the page already showed must still animate. Confirm coverage for each transition; `e2e/join-ready.spec.ts` covers the Ready case.
 
 For new custom graphics or unfamiliar CSS utilities, require rendered evidence during focused UI testing: essential geometry assertions and inspected phone/desktop screenshots. A generated screenshot alone does not establish that the layout was reviewed.
 

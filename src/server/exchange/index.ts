@@ -378,7 +378,7 @@ export async function participantView(personalToken: string | undefined): Promis
 export async function updateParticipant(
   personalToken: string | undefined,
   changes: { displayName?: string; wishlist?: WishlistItemInput[] },
-): Promise<Result<Me>> {
+): Promise<Result<Me & { becameReady: boolean }>> {
   const fields: Record<string, string> = {}
   const name = changes.displayName === undefined ? undefined : validateDisplayName(changes.displayName)
   if (name && !name.ok) fields.displayName = name.error
@@ -401,9 +401,10 @@ export async function updateParticipant(
       .for("update")
     if (row.status !== "open" && row.status !== "closed") return fail({ code: "invalid_transition" })
 
-    const [stillValid] = await tx.select({ id: participant.id }).from(participant)
+    const [stillValid] = await tx.select({ id: participant.id, displayName: participant.displayName }).from(participant)
       .where(and(eq(participant.id, found.id), eq(participant.personalTokenHash, hashLinkToken(personalToken))))
     if (!stillValid) return fail({ code: "invalid_credential" })
+    const wasReady = wishlist?.ok ? (await meOf(tx, stillValid)).ready : false
 
     if (name?.ok) {
       const normalized = normalizeDisplayName(name.value)
@@ -433,7 +434,8 @@ export async function updateParticipant(
       .select({ id: participant.id, displayName: participant.displayName })
       .from(participant)
       .where(eq(participant.id, found.id))
-    return ok(await meOf(tx, me))
+    const updated = await meOf(tx, me)
+    return ok({ ...updated, becameReady: Boolean(wishlist?.ok && !wasReady && updated.ready) })
   })
 }
 

@@ -115,10 +115,51 @@ button[data-slot][data-pending]::before {
 [data-entrance] li:nth-child(2) { animation-delay: 130ms; }
 [data-entrance] li:nth-child(3) { animation-delay: 180ms; }
 
+[data-reveal] [data-step] {
+  animation: rise 300ms var(--ease-out) both;
+  animation-delay: calc(var(--i) * 80ms);
+}
+
+[data-draw-celebration] [data-status-badge] {
+  animation: badge-in 300ms var(--ease-out) both;
+}
+
+@keyframes badge-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 @keyframes rise {
   from {
     opacity: 0;
     transform: translateY(8px);
+  }
+}
+
+[data-hero-art] {
+  animation: rise 300ms var(--ease-out) both;
+}
+
+[data-hero-text] {
+  animation: rise 300ms var(--ease-out) 80ms both;
+}
+
+[data-rise] {
+  animation: rise 300ms var(--ease-out) both;
+}
+
+[data-pop] {
+  animation: pop 260ms var(--ease-out) both;
+}
+
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06);
   }
 }
 
@@ -136,6 +177,9 @@ button[data-slot][data-pending]::before {
 @media (hover: hover) and (pointer: fine) {
   [data-slot="button"][data-variant="solid"]:hover:not([data-disabled]) {
     background: var(--cranberry-deep);
+  }
+  [data-slot="button"][data-lift]:hover:not([data-disabled], :active) {
+    transform: translateY(-2px);
   }
 }
 
@@ -158,6 +202,19 @@ button[data-slot][data-pending]::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-draw-celebration] [data-status-badge] { animation: none; }
+  [data-reveal] [data-step] {
+    animation: none;
+  }
+  [data-hero-art],
+  [data-hero-text],
+  [data-rise],
+  [data-pop] {
+    animation: none;
+  }
+  [data-slot="button"][data-lift]:hover:not([data-disabled]) {
+    transform: none;
+  }
   [data-slot="button"] {
     transition: background-color 160ms ease;
   }
@@ -169,4 +226,35 @@ button[data-slot][data-pending]::before {
       appear 0s 150ms both,
       pulse 1s ease-in-out 150ms infinite;
   }
+}
+
+[data-snowfall] span {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: var(--x);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 9999px;
+  background: var(--line-strong);
+  opacity: 0.35;
+  animation: snow-fall var(--dur) linear var(--delay) infinite;
+  will-change: transform;
+}
+
+[data-snowfall] span[data-gold] {
+  background: var(--gold);
+  opacity: 0.5;
+}
+
+[data-snowfall][data-paused] span {
+  animation-play-state: paused;
+}
+
+@keyframes snow-fall {
+  from { transform: translate(0, -5vh); }
+  to { transform: translate(var(--drift), 105vh); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-snow-root] { display: none; }
 }

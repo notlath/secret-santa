@@ -11,16 +11,20 @@ import {
 } from "@ui-sdk/react/alert-dialog"
 import { Button } from "@ui-sdk/react/button"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useRef, useState, type MouseEvent } from "react"
 import { useHydrated } from "@/hooks/use-hydrated"
+import { celebrate } from "@/lib/celebrate"
 import type { HostView } from "@/server/exchange"
 import { changeRegistrationAction, drawAction } from "./actions"
+import { useDrawCelebration } from "./draw-celebration"
 
 type Props = Pick<HostView, "status" | "participants"> & { exchangeId: string }
 
 export function RegistrationControls({ exchangeId, status, participants }: Props) {
   const hydrated = useHydrated()
   const router = useRouter()
+  const celebrateBadge = useDrawCelebration()
+  const activation = useRef<{ pointer: boolean; target: HTMLElement } | null>(null)
   const [feedback, setFeedback] = useState<{ error: boolean; message: string } | null>(null)
   if (status !== "open" && status !== "closed") return null
 
@@ -44,7 +48,15 @@ export function RegistrationControls({ exchangeId, status, participants }: Props
       setFeedback({ error: true, message: result.message })
       throw new Error(result.message)
     }
+    if (activation.current?.pointer && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      celebrate(activation.current.target)
+      celebrateBadge()
+    }
     router.refresh()
+  }
+
+  function rememberActivation(event: MouseEvent<HTMLElement>) {
+    activation.current = { pointer: event.detail !== 0, target: event.currentTarget }
   }
 
   async function changeRegistration() {
@@ -86,7 +98,7 @@ export function RegistrationControls({ exchangeId, status, participants }: Props
           <p role="alert" className="text-cranberry">{feedback?.error ? feedback.message : null}</p>
           <div className="flex flex-wrap justify-end gap-3">
             <AlertDialogClose render={<Button />}>Cancel</AlertDialogClose>
-            <AlertDialogClose value="confirm" action={runDraw} render={<Button data-variant="solid" />}>Draw now</AlertDialogClose>
+            <AlertDialogClose value="confirm" action={runDraw} render={<Button data-variant="solid" onClickCapture={rememberActivation} />}>Draw now</AlertDialogClose>
           </div>
         </AlertDialogContent>
       </AlertDialog>

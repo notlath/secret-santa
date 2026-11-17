@@ -4,7 +4,7 @@ import { cookies } from "next/headers"
 import { personalCookieName } from "@/server/credentials"
 import { updateParticipant, type WishlistItemInput } from "@/server/exchange"
 
-export type UpdateState = { ok: true } | { ok: false; fields: Record<string, string>; message?: string }
+export type UpdateState = { ok: true; becameReady: boolean } | { ok: false; fields: Record<string, string>; message?: string }
 
 export async function updateParticipantAction(
   exchangeId: string,
@@ -12,7 +12,7 @@ export async function updateParticipantAction(
 ): Promise<UpdateState> {
   const token = (await cookies()).get(personalCookieName(exchangeId))?.value
   const result = await updateParticipant(token, changes)
-  if (result.ok) return { ok: true }
+  if (result.ok) return { ok: true, becameReady: result.value.becameReady }
   switch (result.error.code) {
     case "validation":
       return { ok: false, fields: result.error.fields }

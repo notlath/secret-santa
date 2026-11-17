@@ -9,7 +9,7 @@ const STATUS_LABEL: Record<ExchangeStatus, string> = {
 
 export function StatusBadge({ status }: { status: ExchangeStatus }) {
   return (
-    <p className="self-start rounded-full bg-pine px-3 py-1 text-sm font-semibold text-paper">
+    <p data-status-badge className="self-start rounded-full bg-pine px-3 py-1 text-sm font-semibold text-paper">
       {STATUS_LABEL[status]}
     </p>
   )

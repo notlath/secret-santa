@@ -1,24 +1,29 @@
 import { Button } from "@ui-sdk/react/button"
 import Link from "next/link"
 import { cookies } from "next/headers"
+import { CatGuard } from "@/components/cat-guard"
 import { CopyButton } from "@/components/copy-button"
 import { EventDetailsList } from "@/components/event-details-list"
 import { Explanation } from "@/components/explanation"
+import { GiftBox } from "@/components/gift-box"
 import { LiveRefresh } from "@/components/live-refresh"
 import { ReadyBadge } from "@/components/ready-badge"
+import { ReadyMoments, ReadyState } from "@/components/ready-moment"
 import { RoleSwitcher } from "@/components/role-switcher"
+import { Snowfall } from "@/components/snowfall"
 import { StatusBadge } from "@/components/status-badge"
 import { personalCookieName } from "@/server/credentials"
 import { participantView } from "@/server/exchange"
 import { requestLocale } from "@/server/request-locale"
-import { WISHLIST_SIZE } from "@/lib/wishlist"
 import { DisplayNameForm } from "./display-name-form"
+import { ArrivalHeading } from "./join-arrival"
 import { WishlistEditor } from "./wishlist-editor"
 
 export const metadata = { title: "My Exchange · Gift Exchange" }
 
-export default async function ParticipantPage({ params }: PageProps<"/e/[id]">) {
+export default async function ParticipantPage({ params, searchParams }: PageProps<"/e/[id]">) {
   const { id } = await params
+  const arrived = (await searchParams).joined === "1"
   const token = (await cookies()).get(personalCookieName(id))?.value
   const view = await participantView(token)
   if (token && (!view.ok || view.value.id !== id)) {
@@ -37,22 +42,33 @@ export default async function ParticipantPage({ params }: PageProps<"/e/[id]">) 
   const editable = exchange.status === "open" || exchange.status === "closed"
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+    <ReadyMoments>
+    <main className="relative z-10 mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 pbs-8 pbe-24 sm:pbs-12">
       <LiveRefresh exchangeId={id} role="participant" snapshot={JSON.stringify(exchange)} />
       <RoleSwitcher exchangeId={id} current="participant" />
       <header className="flex flex-col gap-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-pine">You&apos;re in as {exchange.me.displayName}</p>
-        <h1 className="font-display text-3xl text-ink sm:text-4xl">{exchange.name}</h1>
+        <ArrivalHeading arrived={arrived}>{exchange.name}</ArrivalHeading>
         <StatusBadge status={exchange.status} />
       </header>
 
-      {!editable && (
-        <section aria-labelledby="drawn" className="flex flex-col gap-3 rounded-2xl border-2 border-pine bg-paper p-5">
-          <h2 id="drawn" className="font-display text-xl text-pine">Your Recipient is waiting</h2>
-          <p className="text-muted-ink">The Draw is complete. Open your gift box to find out who you&apos;re giving to.</p>
-          <Button render={<Link href={`/e/${id}/reveal`} />} className="self-start">Reveal my Recipient</Button>
-        </section>
-      )}
+      <section data-gift-card aria-labelledby="gift-box" className="flex items-center gap-5 rounded-2xl border-2 border-pine bg-paper p-5">
+        {editable ? <CatGuard /> : <GiftBox />}
+        <div className="flex min-w-0 flex-col gap-3">
+          {editable ? (
+            <>
+              <h2 id="gift-box" className="font-display text-xl text-pine">Your gift box</h2>
+              <p className="text-muted-ink">Your gift box opens after the Draw.</p>
+            </>
+          ) : (
+            <>
+              <h2 id="gift-box" className="font-display text-xl text-pine">Your Recipient is waiting</h2>
+              <p className="text-muted-ink">The Draw is complete. Open your gift box to find out who you&apos;re giving to.</p>
+              <Button render={<Link href={`/e/${id}/reveal`} />} className="self-start">Reveal my Recipient</Button>
+            </>
+          )}
+        </div>
+      </section>
 
       {editable && <ReadyState ready={exchange.me.ready} saved={exchange.me.wishlist.length} />}
 
@@ -124,26 +140,7 @@ export default async function ParticipantPage({ params }: PageProps<"/e/[id]">) 
         <CopyButton path={`/p/${token}`}>Copy my personal link</CopyButton>
       </section>
     </main>
-  )
-}
-
-function ReadyState({ ready, saved }: { ready: boolean; saved: number }) {
-  const missing = WISHLIST_SIZE - saved
-  return ready ? (
-    <section aria-labelledby="ready" className="flex flex-col gap-1 rounded-2xl border-2 border-pine bg-paper p-5">
-      <h2 id="ready" className="font-display text-xl text-pine">
-        You&apos;re Ready
-      </h2>
-      <p className="text-muted-ink">All three Wishlist Items are in. You can still change them until the Draw.</p>
-    </section>
-  ) : (
-    <section aria-labelledby="ready" className="flex flex-col gap-1 rounded-2xl border-2 border-gold bg-paper p-5">
-      <h2 id="ready" className="font-display text-xl text-gold-ink">
-        Not Ready yet
-      </h2>
-      <p className="text-muted-ink">
-        Add {missing} more Wishlist {missing === 1 ? "Item" : "Items"} so the Host can run the Draw.
-      </p>
-    </section>
+    <Snowfall />
+    </ReadyMoments>
   )
 }

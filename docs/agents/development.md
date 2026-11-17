@@ -26,6 +26,8 @@ Run `pnpm test` green first: it fails in seconds where verify reaches it after l
 
 `pnpm verify` takes about 90 seconds, past the tool timeout. Start it with `run_in_background`, wait for the completion notification, and read its output file rather than piping it through `tail`.
 
+When browser tests time out under machine load, set `E2E_WORKERS` to a smaller positive number for the verification run (for example, `E2E_WORKERS=2 pnpm verify`).
+
 Verification fingerprints tracked and untracked Git-visible inputs before running checks and after each check. An edit invalidates the result even if every executed check passed. Generated Next files and ignored outputs are excluded. Finish focused fixes and review corrections before the final run, and keep inputs unchanged until it finishes. Edits reverted between snapshots cannot be detected; use an unchanged checkout for final verification.
 
 Each verification run prints its fingerprint and saves a JSON summary plus per-check logs under `test-results/verification/<run-id>/`. Browser output goes to `test-results/e2e/<run-id>/`; focused runs get their own identifiers too, so a later run preserves earlier traces and screenshots. A failed summary identifies the check, exit code, log and browser output directory. Inspect those artifacts and build a focused reproducer for repeated failures before rerunning the full suite. Ports are checked before server startup, but another process can claim one after the probe; in that case inspect startup output and choose another port.
@@ -52,6 +54,6 @@ Production runs on Vercel; the project ID is in `.vercel/project.json`. Read bui
 
 For an action whose server-side result may succeed even if its response is lost, use `loseNextActionResponse` in `e2e/fixtures.ts` to exercise the uncertain outcome and recovery.
 
-For a new page or dialog, run `auditPage` from `e2e/a11y.ts` (or `expectEveryStopNamedAndVisible(page, dialog)` while a dialog is open): it checks names, 3:1 focus rings and control edges, and 4.5:1 text. Build browser setups from `openDashboard`, `joinFromNewDevice` and `fillWishlist` in `e2e/helpers.ts`; hold server actions with `holdActions` in `e2e/fixtures.ts`.
+For a new page or dialog, run `auditPage` from `e2e/a11y.ts` (or `expectEveryStopNamedAndVisible(page, dialog)` while a dialog is open): it checks names, 3:1 focus rings and control edges, and 4.5:1 text. Wait for the intended URL and the controls the audit needs before auditing; a navigation still in flight races the focus pass. Build browser setups from `openDashboard`, `joinFromNewDevice` and `fillWishlist` in `e2e/helpers.ts`; hold server actions with `holdActions` in `e2e/fixtures.ts`.
 
 For visibility-aware polling, use `observeRequests` and `setPageVisibility` from `e2e/fixtures.ts` to verify that requests stop while hidden and resume on return, alongside assertions on the displayed data.

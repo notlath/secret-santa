@@ -1,13 +1,25 @@
 import assert from "node:assert/strict"
 import { createServer } from "node:net"
 import { test } from "node:test"
-import { selectE2EPort } from "./run-e2e.mjs"
+import { selectE2EPort, selectE2EWorkers } from "./run-e2e.mjs"
 
 test("reserved and invalid explicit ports fail with an explanation", async () => {
   await assert.rejects(selectE2EPort("4045"), /4045.*reserved/)
   for (const value of ["abc", "", "0", "65536", "1.5", "-1"]) {
     await assert.rejects(selectE2EPort(value), /E2E_PORT/)
   }
+})
+
+test("E2E_WORKERS rejects values that are not positive integers", () => {
+  for (const value of ["abc", "0", "-1", "1.5", " 2", "2 "]) {
+    assert.throws(() => selectE2EWorkers(value), /E2E_WORKERS/)
+  }
+})
+
+test("E2E_WORKERS accepts a positive integer and stays unset when empty", () => {
+  assert.equal(selectE2EWorkers("2"), 2)
+  assert.equal(selectE2EWorkers(undefined), undefined)
+  assert.equal(selectE2EWorkers(""), undefined)
 })
 
 test("an occupied explicit port fails instead of reusing another server", async (t) => {

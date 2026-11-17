@@ -72,7 +72,7 @@ test("the whole Exchange works by keyboard alone, with every control named and i
     await auditPage(page)
     await press(page, page.getByRole("link", { name: "Go to my page" }))
     await expect(page.getByText("You're in as Mia")).toBeVisible()
-    const exchangeUrl = page.url()
+    const exchangeUrl = page.url().split("?")[0]
     await fillWishlistByKeyboard(page, "Mia")
 
     for (const name of ["Ana", "Ben"]) {
@@ -109,6 +109,8 @@ test("the whole Exchange works by keyboard alone, with every control named and i
     await press(page, start)
     await press(page, page.getByRole("alertdialog").getByRole("button", { name: "Draw now" }))
     await expect(page.getByRole("region", { name: "Reveals" })).toBeVisible()
+    await expect(page.getByText("Draw done", { exact: true })).toBeVisible()
+    await expect(page.locator("canvas")).toHaveCount(0)
     await auditPage(page)
 
     await press(page, page.getByRole("navigation", { name: "Switch role" }).getByRole("link", { name: "My exchange" }))

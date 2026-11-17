@@ -36,13 +36,22 @@ export async function selectE2EPort(override) {
   throw new Error("Could not select a non-reserved E2E port. Set E2E_PORT explicitly.")
 }
 
+export function selectE2EWorkers(override) {
+  if (override === undefined || override === "") return undefined
+  if (!/^\d+$/.test(override) || Number(override) < 1) {
+    throw new Error("E2E_WORKERS must be a positive integer")
+  }
+  return Number(override)
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const port = await selectE2EPort(process.env.E2E_PORT)
+  const workers = selectE2EWorkers(process.env.E2E_WORKERS)
   const runId = process.env.E2E_RUN_ID ?? createRunId()
   const output = artifactPaths(process.cwd(), runId).e2e
   console.log(`Browser run ${runId}\nPort: ${port}\nArtifacts: ${output}`)
   const child = spawn("pnpm", ["exec", "playwright", "test", ...process.argv.slice(2)], {
-    stdio: "inherit", env: { ...process.env, E2E_PORT: String(port), E2E_RUN_ID: runId },
+    stdio: "inherit", env: { ...process.env, E2E_PORT: String(port), E2E_RUN_ID: runId, ...(workers === undefined ? {} : { E2E_WORKERS: String(workers) }) },
   })
   process.exitCode = await new Promise((resolve, reject) => {
     child.on("error", reject)

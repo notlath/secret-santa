@@ -39,7 +39,9 @@ export function SavePersonalLink({ personalToken }: { personalToken: string }) {
           )}
         </div>
       </div>
-      <Button data-variant="solid" className="self-start" render={<a href={`/p/${personalToken}`} />}>
+      <Button data-variant="solid" className="self-start" onClick={(event) => {
+        event.currentTarget.setAttribute("href", `/p/${personalToken}${event.detail !== 0 ? "?joined=1" : ""}`)
+      }} render={<a href={`/p/${personalToken}`} />}>
         Go to my page
       </Button>
     </section>

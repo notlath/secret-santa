@@ -12,6 +12,7 @@ export default defineConfig({
   testDir: "./e2e",
   testIgnore: [`${path.resolve(import.meta.dirname, ".claude")}/**`],
   fullyParallel: true,
+  workers: process.env.E2E_WORKERS ? Number(process.env.E2E_WORKERS) : undefined,
   outputDir: artifactPaths(process.cwd(), process.env.E2E_RUN_ID).e2e,
   globalSetup: "./test/playwright-global-setup.ts",
   use: { baseURL, locale: "en-US", timezoneId: "America/New_York", trace: "retain-on-failure" },
