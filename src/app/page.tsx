@@ -1,6 +1,7 @@
 import { Button } from "@ui-sdk/react/button"
 import { cookies } from "next/headers"
 import Link from "next/link"
+import { CatGuard } from "@/components/cat-guard"
 import { ROLE_LINKS } from "@/components/role-switcher"
 import { deviceCredentials } from "@/server/credentials"
 import { deviceExchanges } from "@/server/exchange"
@@ -16,7 +17,10 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           The Exchange was deleted, along with everything in it.
         </p>
       )}
-      <div className="flex flex-col gap-3">
+      <div data-hero-art className="mbs-12 self-center">
+        <CatGuard />
+      </div>
+      <div data-hero-text className="flex flex-col gap-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-pine">Secret Santa, sorted</p>
         <h1 className="font-display text-4xl leading-tight text-ink sm:text-5xl">Gift Exchange</h1>
         <p className="text-lg text-muted-ink">
@@ -24,7 +28,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         </p>
       </div>
       <div className="flex flex-wrap gap-3">
-        <Button data-variant="solid" render={<Link href="/new" />}>
+        <Button data-variant="solid" data-lift render={<Link href="/new" />}>
           Create an Exchange
         </Button>
         <Button render={<Link href="/join" />}>Join an Exchange</Button>

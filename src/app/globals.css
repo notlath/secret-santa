@@ -122,6 +122,14 @@ button[data-slot][data-pending]::before {
   }
 }
 
+[data-hero-art] {
+  animation: rise 300ms var(--ease-out) both;
+}
+
+[data-hero-text] {
+  animation: rise 300ms var(--ease-out) 80ms both;
+}
+
 /* An offset keeps the ring distinct from solid cranberry buttons; fields keep theirs flush with the border. */
 :is(a, [data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"]):focus-visible {
   outline-offset: 2px;
@@ -136,6 +144,9 @@ button[data-slot][data-pending]::before {
 @media (hover: hover) and (pointer: fine) {
   [data-slot="button"][data-variant="solid"]:hover:not([data-disabled]) {
     background: var(--cranberry-deep);
+  }
+  [data-slot="button"][data-lift]:hover:not([data-disabled], :active) {
+    transform: translateY(-2px);
   }
 }
 
@@ -158,6 +169,13 @@ button[data-slot][data-pending]::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-hero-art],
+  [data-hero-text] {
+    animation: none;
+  }
+  [data-slot="button"][data-lift]:hover:not([data-disabled]) {
+    transform: none;
+  }
   [data-slot="button"] {
     transition: background-color 160ms ease;
   }
