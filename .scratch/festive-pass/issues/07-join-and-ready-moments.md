@@ -7,7 +7,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] The first arrival after joining is detected with the simplest signal that needs no new storage, such as a one-shot flag on the join redirect. Reloading the page doesn't replay the rise.
 - [ ] The Ready transition plays a CSS `pop` on the badge and shows "You're all set". Neither plays on page load for a Participant who is already Ready.
