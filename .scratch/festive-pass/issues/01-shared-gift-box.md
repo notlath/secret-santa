@@ -6,7 +6,7 @@ Reference: the gift box in `prototype/festive-motion` (see `.scratch/festive-pas
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] One shared gift box component, reused unchanged by later tickets. Its lid is addressable on its own and transforms from its bottom centre. It has a slot behind the drawing and a slot in front of it.
 - [ ] The box never shrinks in a flex row.
