@@ -16,7 +16,7 @@ test("the whole Exchange, from creating it to every reveal, across separate devi
     await page.getByRole("link", { name: "Go to my page" }).click()
     await expect(page.getByText("You're in as Mia")).toBeVisible()
     await fillWishlist(page, "Mia")
-    const exchangeUrl = page.url()
+    const exchangeUrl = page.url().split("?")[0]
     const people: Person[] = [{ name: "Mia", page, personalLink: hostPersonalLink }]
 
     for (const name of ["Ana", "Ben", "Cara"]) {

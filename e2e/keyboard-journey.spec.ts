@@ -72,7 +72,7 @@ test("the whole Exchange works by keyboard alone, with every control named and i
     await auditPage(page)
     await press(page, page.getByRole("link", { name: "Go to my page" }))
     await expect(page.getByText("You're in as Mia")).toBeVisible()
-    const exchangeUrl = page.url()
+    const exchangeUrl = page.url().split("?")[0]
     await fillWishlistByKeyboard(page, "Mia")
 
     for (const name of ["Ana", "Ben"]) {
