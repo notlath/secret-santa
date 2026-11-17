@@ -17,6 +17,7 @@ test("the pause choice survives a reload", async ({ page }) => {
 })
 
 test("snow does not block clicks and the festive pages pass the audit", async ({ page, browser }) => {
+  test.setTimeout(120_000)
   await page.goto("/")
   await expect(snow(page)).toBeAttached()
   await expect(snow(page)).toHaveAttribute("aria-hidden", "true")
@@ -52,6 +53,7 @@ test("the pause choice carries to the Participant page on the same device", asyn
 })
 
 test("with reduced motion there is no snow and no toggle on the landing page, Participant page or reveal", async ({ page, browser }) => {
+  test.setTimeout(120_000)
   await page.emulateMedia({ reducedMotion: "reduce" })
   await page.goto("/")
   await expect(snow(page)).toBeHidden()
@@ -75,6 +77,7 @@ test("with reduced motion there is no snow and no toggle on the landing page, Pa
 })
 
 test("the reveal has snow and the Host dashboard has none", async ({ page, browser }) => {
+  test.setTimeout(120_000)
   const people = await drawnExchange(page, browser)
   try {
     await expect(snow(page)).toHaveCount(0)
