@@ -122,6 +122,25 @@ button[data-slot][data-pending]::before {
   }
 }
 
+[data-rise] {
+  animation: rise 300ms var(--ease-out) both;
+}
+
+[data-pop] {
+  animation: pop 260ms var(--ease-out) both;
+}
+
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
 /* An offset keeps the ring distinct from solid cranberry buttons; fields keep theirs flush with the border. */
 :is(a, [data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"]):focus-visible {
   outline-offset: 2px;
@@ -158,6 +177,10 @@ button[data-slot][data-pending]::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-rise],
+  [data-pop] {
+    animation: none;
+  }
   [data-slot="button"] {
     transition: background-color 160ms ease;
   }

@@ -39,7 +39,7 @@ export function SavePersonalLink({ personalToken }: { personalToken: string }) {
           )}
         </div>
       </div>
-      <Button data-variant="solid" className="self-start" render={<a href={`/p/${personalToken}`} />}>
+      <Button data-variant="solid" className="self-start" render={<a href={`/p/${personalToken}?joined=1`} />}>
         Go to my page
       </Button>
     </section>

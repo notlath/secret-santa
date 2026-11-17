@@ -9,5 +9,6 @@ export async function GET(request: NextRequest, { params }: RouteContext<"/p/[to
   if (!view.ok) return NextResponse.redirect(new URL("/link-invalid", request.url), 303)
 
   ;(await cookies()).set(personalCookieName(view.value.id), token, linkCookieOptions)
-  return NextResponse.redirect(new URL(`/e/${view.value.id}`, request.url), 303)
+  const arrival = request.nextUrl.searchParams.get("joined") === "1" ? "?joined=1" : ""
+  return NextResponse.redirect(new URL(`/e/${view.value.id}${arrival}`, request.url), 303)
 }
