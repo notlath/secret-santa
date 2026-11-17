@@ -5,7 +5,8 @@ import { Field, FieldDescription, FieldError, FieldLabel } from "@ui-sdk/react/f
 import { Input } from "@ui-sdk/react/input"
 import { Textarea } from "@ui-sdk/react/textarea"
 import { useRouter } from "next/navigation"
-import { useState, type FormEvent } from "react"
+import { useRef, useState, type FormEvent, type MouseEvent } from "react"
+import { useReportSave } from "@/components/ready-moment"
 import { useHydrated } from "@/hooks/use-hydrated"
 import {
   ITEM_DESCRIPTION_MAX,
@@ -24,6 +25,8 @@ const POSITIONS = Array.from({ length: WISHLIST_SIZE }, (_, index) => index + 1)
 export function WishlistEditor({ exchangeId, wishlist }: { exchangeId: string; wishlist: WishlistItem[] }) {
   const hydrated = useHydrated()
   const router = useRouter()
+  const reportSave = useReportSave()
+  const pointerSave = useRef(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [message, setMessage] = useState("")
   const [saved, setSaved] = useState("")
@@ -60,6 +63,7 @@ export function WishlistEditor({ exchangeId, wishlist }: { exchangeId: string; w
     try {
       const result = await updateParticipantAction(exchangeId, { wishlist: items })
       if (result.ok) {
+        reportSave(pointerSave.current)
         setSaved("Wishlist saved.")
         router.refresh()
       } else {
@@ -123,7 +127,13 @@ export function WishlistEditor({ exchangeId, wishlist }: { exchangeId: string; w
           </p>
         )}
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" data-variant="solid" disabled={!hydrated || pending} focusableWhenDisabled={hydrated}>
+          <Button
+            type="submit"
+            data-variant="solid"
+            onClick={(event: MouseEvent<HTMLElement>) => {
+              pointerSave.current = event.detail !== 0
+            }}
+            disabled={!hydrated || pending} focusableWhenDisabled={hydrated}>
             {pending ? "Saving…" : "Save Wishlist"}
           </Button>
           <span role="status" className="text-sm text-pine">
