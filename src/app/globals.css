@@ -227,3 +227,34 @@ button[data-slot][data-pending]::before {
       pulse 1s ease-in-out 150ms infinite;
   }
 }
+
+[data-snowfall] span {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: var(--x);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 9999px;
+  background: var(--line-strong);
+  opacity: 0.35;
+  animation: snow-fall var(--dur) linear var(--delay) infinite;
+  will-change: transform;
+}
+
+[data-snowfall] span[data-gold] {
+  background: var(--gold);
+  opacity: 0.5;
+}
+
+[data-snowfall][data-paused] span {
+  animation-play-state: paused;
+}
+
+@keyframes snow-fall {
+  from { transform: translate(0, -5vh); }
+  to { transform: translate(var(--drift), 105vh); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-snow-root] { display: none; }
+}

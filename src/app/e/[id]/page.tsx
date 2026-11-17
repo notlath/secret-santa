@@ -10,6 +10,7 @@ import { LiveRefresh } from "@/components/live-refresh"
 import { ReadyBadge } from "@/components/ready-badge"
 import { ReadyMoments, ReadyState } from "@/components/ready-moment"
 import { RoleSwitcher } from "@/components/role-switcher"
+import { Snowfall } from "@/components/snowfall"
 import { StatusBadge } from "@/components/status-badge"
 import { personalCookieName } from "@/server/credentials"
 import { participantView } from "@/server/exchange"
@@ -42,7 +43,7 @@ export default async function ParticipantPage({ params, searchParams }: PageProp
 
   return (
     <ReadyMoments>
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+    <main className="relative z-10 mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 pbs-8 pbe-24 sm:pbs-12">
       <LiveRefresh exchangeId={id} role="participant" snapshot={JSON.stringify(exchange)} />
       <RoleSwitcher exchangeId={id} current="participant" />
       <header className="flex flex-col gap-3">
@@ -139,6 +140,7 @@ export default async function ParticipantPage({ params, searchParams }: PageProp
         <CopyButton path={`/p/${token}`}>Copy my personal link</CopyButton>
       </section>
     </main>
+    <Snowfall />
     </ReadyMoments>
   )
 }

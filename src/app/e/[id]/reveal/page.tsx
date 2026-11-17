@@ -1,6 +1,7 @@
 import { cookies } from "next/headers"
 import Link from "next/link"
 import { Explanation } from "@/components/explanation"
+import { Snowfall } from "@/components/snowfall"
 import { EventDetailsList } from "@/components/event-details-list"
 import { personalCookieName } from "@/server/credentials"
 import { revealView } from "@/server/exchange"
@@ -28,7 +29,8 @@ export default async function RevealPage({ params }: PageProps<"/e/[id]/reveal">
   const exchange = view.value
   const locale = await requestLocale()
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:py-12">
+    <>
+    <main className="relative z-10 mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 pbs-8 pbe-24 sm:pbs-12">
       <Link href={`/e/${id}`} className="self-start text-pine underline underline-offset-4">Back to my Exchange</Link>
       <header className="flex flex-col gap-2">
         <p className="text-sm font-semibold uppercase tracking-wider text-pine">A little secret, just for you</p>
@@ -45,5 +47,7 @@ export default async function RevealPage({ params }: PageProps<"/e/[id]/reveal">
         <EventDetailsList details={exchange.eventDetails} locale={locale} />
       </section>
     </main>
+    <Snowfall />
+    </>
   )
 }
