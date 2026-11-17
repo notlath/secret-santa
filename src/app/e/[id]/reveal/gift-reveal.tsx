@@ -2,8 +2,9 @@
 
 import { Button } from "@ui-sdk/react/button"
 import { useAnimate } from "motion/react"
-import { useEffect, useRef, useState, type MouseEvent } from "react"
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react"
 import { GiftBox } from "@/components/gift-box"
+import { celebrate } from "@/lib/celebrate"
 import { useHydrated } from "@/hooks/use-hydrated"
 import type { RevealView } from "@/server/exchange"
 import { openRevealAction } from "./actions"
@@ -25,6 +26,7 @@ export function GiftReveal({ exchangeId, alreadyOpened, recipient }: Props) {
 
   async function openGift(event: MouseEvent<HTMLElement>) {
     const pointerActivation = event.detail !== 0
+    const target = event.currentTarget
     setError("")
     try {
       const result = await openRevealAction(exchangeId)
@@ -34,9 +36,11 @@ export function GiftReveal({ exchangeId, alreadyOpened, recipient }: Props) {
       }
       const motion = pointerActivation && !window.matchMedia("(prefers-reduced-motion: reduce)").matches
       if (motion) {
-        await animate("[data-gift-lid]", { transform: "translateY(-28px) rotate(-8deg)", opacity: 0 }, {
-          duration: 0.25, ease: [0.23, 1, 0.32, 1],
+        await animate(scope.current, { scaleX: [1, 1.05, 1], scaleY: [1, 0.93, 1] }, { duration: 0.16, ease: [0.23, 1, 0.32, 1] })
+        await animate("[data-gift-lid]", { y: -44, rotate: -14, opacity: 0 }, {
+          duration: 0.3, ease: [0.23, 1, 0.32, 1],
         })
+        celebrate(target)
       }
       focusOnOpen.current = true
       setEntrance(motion)
@@ -51,7 +55,7 @@ export function GiftReveal({ exchangeId, alreadyOpened, recipient }: Props) {
       <h2 id="gift" className="font-display text-2xl text-ink">Who will you surprise?</h2>
       <p className="text-center text-muted-ink">Your Recipient and their three wishes are inside.</p>
       <Button disabled={!hydrated} onClick={openGift} pendingAnnouncement="Opening your gift box" className="flex flex-col gap-5 py-5">
-        <span ref={scope} className="block"><GiftBox /></span>
+        <span ref={scope} className="block origin-bottom"><GiftBox /></span>
         Open my gift box
       </Button>
       <p role="alert" className="text-cranberry">{error}</p>
@@ -59,15 +63,15 @@ export function GiftReveal({ exchangeId, alreadyOpened, recipient }: Props) {
   )
 
   return (
-    <section aria-labelledby="recipient" data-entrance={entrance || undefined} className="flex flex-col gap-5 rounded-2xl border-2 border-pine bg-paper p-5 sm:p-6">
-      <div className="flex flex-col gap-2">
+    <section aria-labelledby="recipient" data-reveal={entrance || undefined} className="flex flex-col gap-5 rounded-2xl border-2 border-pine bg-paper p-5 sm:p-6">
+      <div data-step style={{ "--i": 0 } as CSSProperties} className="flex flex-col gap-2">
         <h2 id="recipient" ref={heading} tabIndex={-1} className="font-display text-xl text-pine focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pine">Your Recipient</h2>
         <p data-testid="recipient-name" className="font-display text-3xl text-ink [overflow-wrap:anywhere]">{recipient.displayName}</p>
         <p className="text-muted-ink">Keep it a secret. Here are their three wishes.</p>
       </div>
       <ol className="flex flex-col gap-5">
-        {recipient.wishlist.map((item) => (
-          <li key={item.position} className="flex flex-col gap-2 border-bs border-line pbs-4 [overflow-wrap:anywhere]">
+        {recipient.wishlist.map((item, index) => (
+          <li key={item.position} data-step style={{ "--i": index + 1 } as CSSProperties} className="flex flex-col gap-2 border-bs border-line pbs-4 [overflow-wrap:anywhere]">
             <h3 className="font-semibold text-ink">{item.name}</h3>
             {item.description && <p className="whitespace-pre-line text-muted-ink">{item.description}</p>}
             {item.productLink && <a href={item.productLink} target="_blank" rel="noopener noreferrer nofollow" className="self-start text-pine underline underline-offset-4">{new URL(item.productLink).hostname}</a>}

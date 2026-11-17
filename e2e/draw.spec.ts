@@ -1,4 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from "@playwright/test"
+import { auditPage } from "./a11y"
 import { openAndExpectMotion, type OpeningMode } from "./fixtures"
 import { createExchange } from "./helpers"
 
@@ -80,6 +81,8 @@ test("Host draws once; every Participant privately opens the same Recipient on r
       await page.reload()
       await expect(tracking.getByText(`${index} of 3 have seen their Recipient`)).toBeVisible()
       const open = friend.getByRole("button", { name: "Open my gift box" })
+      await expect(open).toBeEnabled()
+      await auditPage(friend)
       const modes: OpeningMode[] = ["pointer", "reduced-motion-pointer", "keyboard"]
       await openAndExpectMotion(friend, open, modes[index])
       const recipient = friend.getByRole("region", { name: "Your Recipient" })
@@ -90,6 +93,8 @@ test("Host draws once; every Participant privately opens the same Recipient on r
       expect(recipientName).not.toBe(person.name)
       recipients.push(recipientName)
       await expect(recipient.getByRole("heading", { name: "Your Recipient" })).toBeFocused()
+      await friend.waitForTimeout(800)
+      await auditPage(friend)
       for (const position of [1, 2, 3]) {
         await expect(recipient.getByText(`${recipientName}'s gift ${position}`)).toBeVisible()
         await expect(recipient.getByText(`${recipientName}'s description ${position}`)).toBeVisible()
