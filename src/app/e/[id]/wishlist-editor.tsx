@@ -6,6 +6,7 @@ import { Input } from "@ui-sdk/react/input"
 import { Textarea } from "@ui-sdk/react/textarea"
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
+import { useHydrated } from "@/hooks/use-hydrated"
 import {
   ITEM_DESCRIPTION_MAX,
   ITEM_NAME_MAX,
@@ -21,6 +22,7 @@ import { updateParticipantAction } from "./actions"
 const POSITIONS = Array.from({ length: WISHLIST_SIZE }, (_, index) => index + 1)
 
 export function WishlistEditor({ exchangeId, wishlist }: { exchangeId: string; wishlist: WishlistItem[] }) {
+  const hydrated = useHydrated()
   const router = useRouter()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [message, setMessage] = useState("")
@@ -72,61 +74,63 @@ export function WishlistEditor({ exchangeId, wishlist }: { exchangeId: string; w
   }
 
   return (
-    <form noValidate onSubmit={submit} className="flex flex-col gap-6">
-      <ol className="flex flex-col gap-4">
-        {POSITIONS.map((position) => {
-          const item = wishlist.find((saved) => saved.position === position)
-          return (
-            <li key={position}>
-              <fieldset className="flex flex-col gap-4 rounded-2xl border border-line bg-paper p-5">
-                <legend className="float-left font-display text-lg text-cranberry">Item {position}</legend>
-                <ItemField
-                  name={wishlistFieldKey(position, "name")}
-                  label="Name"
-                  defaultValue={item?.name}
-                  maxLength={ITEM_NAME_MAX}
-                  error={errors[wishlistFieldKey(position, "name")]}
-                  onEdit={clear}
-                />
-                <ItemField
-                  name={wishlistFieldKey(position, "description")}
-                  label="Description"
-                  optional
-                  long
-                  defaultValue={item?.description}
-                  maxLength={ITEM_DESCRIPTION_MAX}
-                  description="Size, colour, anything that helps."
-                  error={errors[wishlistFieldKey(position, "description")]}
-                  onEdit={clear}
-                />
-                <ItemField
-                  name={wishlistFieldKey(position, "productLink")}
-                  label="Product link"
-                  optional
-                  type="url"
-                  defaultValue={item?.productLink}
-                  maxLength={PRODUCT_LINK_MAX}
-                  error={errors[wishlistFieldKey(position, "productLink")]}
-                  onEdit={clear}
-                />
-              </fieldset>
-            </li>
-          )
-        })}
-      </ol>
-      {message && (
-        <p role="alert" className="rounded-lg bg-cranberry/10 px-4 py-3 text-cranberry">
-          {message}
-        </p>
-      )}
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" data-variant="solid" disabled={pending} focusableWhenDisabled>
-          {pending ? "Saving…" : "Save Wishlist"}
-        </Button>
-        <span role="status" className="text-sm text-pine">
-          {saved}
-        </span>
-      </div>
+    <form method="post" noValidate onSubmit={submit} className="flex flex-col gap-6">
+      <fieldset disabled={!hydrated} className="contents">
+        <ol className="flex flex-col gap-4">
+          {POSITIONS.map((position) => {
+            const item = wishlist.find((saved) => saved.position === position)
+            return (
+              <li key={position}>
+                <fieldset className="flex flex-col gap-4 rounded-2xl border border-line bg-paper p-5">
+                  <legend className="float-left font-display text-lg text-cranberry">Item {position}</legend>
+                  <ItemField
+                    name={wishlistFieldKey(position, "name")}
+                    label="Name"
+                    defaultValue={item?.name}
+                    maxLength={ITEM_NAME_MAX}
+                    error={errors[wishlistFieldKey(position, "name")]}
+                    onEdit={clear}
+                  />
+                  <ItemField
+                    name={wishlistFieldKey(position, "description")}
+                    label="Description"
+                    optional
+                    long
+                    defaultValue={item?.description}
+                    maxLength={ITEM_DESCRIPTION_MAX}
+                    description="Size, colour, anything that helps."
+                    error={errors[wishlistFieldKey(position, "description")]}
+                    onEdit={clear}
+                  />
+                  <ItemField
+                    name={wishlistFieldKey(position, "productLink")}
+                    label="Product link"
+                    optional
+                    type="url"
+                    defaultValue={item?.productLink}
+                    maxLength={PRODUCT_LINK_MAX}
+                    error={errors[wishlistFieldKey(position, "productLink")]}
+                    onEdit={clear}
+                  />
+                </fieldset>
+              </li>
+            )
+          })}
+        </ol>
+        {message && (
+          <p role="alert" className="rounded-lg bg-cranberry/10 px-4 py-3 text-cranberry">
+            {message}
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" data-variant="solid" disabled={!hydrated || pending} focusableWhenDisabled={hydrated}>
+            {pending ? "Saving…" : "Save Wishlist"}
+          </Button>
+          <span role="status" className="text-sm text-pine">
+            {saved}
+          </span>
+        </div>
+      </fieldset>
     </form>
   )
 }

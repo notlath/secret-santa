@@ -59,3 +59,30 @@ test("Finish controls wait for hydration", async ({ page, delayedPage }) => {
     await Promise.all(people.map((person) => person.context.close()))
   }
 })
+
+test("forms keep their fields and submit disabled until hydration", async ({ page, delayedPage }) => {
+  const { accessCode } = await createExchange(page)
+  await page.goto(`/join/${accessCode}`)
+  await page.getByLabel("Display name").fill("Ben")
+  await page.getByRole("button", { name: "Join" }).click()
+  await page.getByRole("link", { name: "Go to my page" }).click()
+  await expect(page.getByText("You're in as Ben")).toBeVisible()
+
+  const slow = delayedPage.page
+  await slow.goto("/new", { waitUntil: "commit" })
+  await expectNativeDisabled(slow.getByRole("button", { name: "Create Exchange" }))
+  await expect(slow.getByLabel("Exchange name")).toBeDisabled()
+
+  await slow.goto(page.url(), { waitUntil: "commit" })
+  const saveWishlist = slow.getByRole("button", { name: "Save Wishlist" })
+  const itemName = slow.getByRole("group", { name: "Item 1" }).getByLabel("Name", { exact: true })
+  const saveName = slow.getByRole("button", { name: "Save name" })
+  for (const button of [saveWishlist, saveName]) await expectNativeDisabled(button)
+  for (const field of [itemName, slow.getByLabel("Display name")]) await expect(field).toBeDisabled()
+  delayedPage.release()
+  await itemName.fill("Socks")
+  await saveWishlist.click()
+  await expect(slow.getByRole("status").filter({ hasText: "Wishlist saved." })).toBeVisible()
+  expect(new URL(slow.url()).search).toBe("")
+  await expect(saveName).toBeEnabled()
+})

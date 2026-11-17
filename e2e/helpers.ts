@@ -46,8 +46,6 @@ export async function joinFromNewDevice(browser: Browser, accessCode: string, na
 }
 
 export async function fillWishlist(page: Page, name: string) {
-  // Submitting before hydration falls back to a native GET, so let scripts finish first.
-  await page.waitForLoadState("networkidle")
   for (const position of [1, 2, 3]) {
     await page.getByRole("group", { name: `Item ${position}` }).getByLabel("Name", { exact: true }).fill(`${name}'s gift ${position}`)
   }
