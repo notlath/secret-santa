@@ -26,8 +26,8 @@ test("the heading rises on the first arrival after joining and not after a reloa
   const { context, page: ben } = await joinAndArrive(browser, accessCode, "Ben")
 
   await expect(heading(ben)).toHaveAttribute("data-rise")
-  await auditPage(ben)
   await expect(ben).not.toHaveURL(/joined/)
+  await auditPage(ben)
 
   await ben.reload()
   await expect(heading(ben)).toBeVisible()

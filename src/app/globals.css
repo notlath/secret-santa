@@ -120,6 +120,15 @@ button[data-slot][data-pending]::before {
   animation-delay: calc(var(--i) * 80ms);
 }
 
+[data-draw-celebration] [data-status-badge] {
+  animation: badge-in 300ms var(--ease-out) both;
+}
+
+@keyframes badge-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 @keyframes rise {
   from {
     opacity: 0;
@@ -193,6 +202,7 @@ button[data-slot][data-pending]::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-draw-celebration] [data-status-badge] { animation: none; }
   [data-reveal] [data-step] {
     animation: none;
   }
