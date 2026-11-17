@@ -332,7 +332,12 @@ if ! confirm "Deploy now?"; then
   warn "Stopped before deploying. Re-run, or push to main, when you're ready."
   exit 1
 fi
-"${VERCEL[@]}" deploy --prod --yes
+# Deploy the committed main, not this working folder: local caches and worktrees exceed Vercel's upload limit.
+release=$(mktemp -d)
+trap 'rm -rf "$release"' EXIT
+git archive main | tar -x -C "$release"
+cp -R .vercel "$release/.vercel"
+"${VERCEL[@]}" deploy --prod --yes --cwd "$release"
 pause
 
 # ── Stage 9 ────────────────────────────────────────────────────────────────
