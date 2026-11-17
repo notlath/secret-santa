@@ -8,7 +8,7 @@ The card replaces the current after-Draw waiting card, so there is still one way
 
 **Blocked by:** 04
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] Before the Draw, the card shows the cat guard and "Your gift box opens after the Draw.", with no reveal link.
 - [ ] After the Draw, the card shows the plain box, "Your Recipient is waiting" and "Reveal my Recipient". Exactly one link on the page leads to the reveal.
