@@ -12,7 +12,6 @@ export default async function Home({ searchParams }: PageProps<"/">) {
 
   return (
     <>
-    <Snowfall />
     <main className="relative z-10 mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-8 px-4 pbs-12 pbe-24">
       {deleted === "1" && (
         <p role="status" className="rounded-lg bg-cream-deep px-4 py-3 text-ink">
@@ -62,6 +61,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         </section>
       )}
     </main>
+    <Snowfall />
     </>
   )
 }

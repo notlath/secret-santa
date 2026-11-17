@@ -39,7 +39,6 @@ export default async function ParticipantPage({ params }: PageProps<"/e/[id]">) 
 
   return (
     <>
-    <Snowfall />
     <main className="relative z-10 mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 pbs-8 pbe-24 sm:pbs-12">
       <LiveRefresh exchangeId={id} role="participant" snapshot={JSON.stringify(exchange)} />
       <RoleSwitcher exchangeId={id} current="participant" />
@@ -127,6 +126,7 @@ export default async function ParticipantPage({ params }: PageProps<"/e/[id]">) 
         <CopyButton path={`/p/${token}`}>Copy my personal link</CopyButton>
       </section>
     </main>
+    <Snowfall />
     </>
   )
 }

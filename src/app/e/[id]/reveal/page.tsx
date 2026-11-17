@@ -30,7 +30,6 @@ export default async function RevealPage({ params }: PageProps<"/e/[id]/reveal">
   const locale = await requestLocale()
   return (
     <>
-    <Snowfall />
     <main className="relative z-10 mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 pbs-8 pbe-24 sm:pbs-12">
       <Link href={`/e/${id}`} className="self-start text-pine underline underline-offset-4">Back to my Exchange</Link>
       <header className="flex flex-col gap-2">
@@ -48,6 +47,7 @@ export default async function RevealPage({ params }: PageProps<"/e/[id]/reveal">
         <EventDetailsList details={exchange.eventDetails} locale={locale} />
       </section>
     </main>
+    <Snowfall />
     </>
   )
 }
