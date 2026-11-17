@@ -284,7 +284,7 @@ export async function reissuePersonalLink(hostToken: string | undefined, partici
   if (!current) return fail({ code: "invalid_credential" })
   return db.transaction(async (tx) => {
     const [row] = await tx.select({ status: exchange.status }).from(exchange).where(eq(exchange.id, current.id)).for("update")
-    if (row.status !== "open" && row.status !== "closed") return fail({ code: "invalid_transition" })
+    if (row.status === "completed") return fail({ code: "invalid_transition" })
     const personalToken = generateLinkToken()
     const [updated] = await tx.update(participant).set({ personalTokenHash: hashLinkToken(personalToken) })
       .where(and(eq(participant.id, participantId), eq(participant.exchangeId, current.id))).returning({ id: participant.id })

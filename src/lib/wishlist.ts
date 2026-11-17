@@ -14,15 +14,11 @@ export type WishlistItem = {
   productLink: string | null
 }
 
-// Error keys look like `wishlist.<position>.<field>`, e.g. `wishlist.2.productLink`.
 export function wishlistFieldKey(position: number, field: keyof WishlistItemInput): string {
   return `wishlist.${position}.${field}`
 }
 
-/**
- * Blank slots are dropped, so a partial Wishlist saves. An item with any content needs a name.
- * Readiness is derived from the result: Ready means all three slots hold a named item.
- */
+// Blank slots are dropped so a partial Wishlist saves; an item with any content needs a name.
 export function validateWishlist(
   items: WishlistItemInput[],
 ): { ok: true; value: WishlistItem[] } | { ok: false; fields: Record<string, string> } {

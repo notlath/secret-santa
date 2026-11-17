@@ -42,7 +42,7 @@ test("Host removes a Participant after the Draw; their Giver sees the new Recipi
     const removed = "Cara"
     const giver = people.find((person) => recipients.get(person.name) === removed)!
     const bystander = people.find((person) => person.name !== removed && person !== giver)!
-    await expect(page.getByRole("button", { name: /^Re-issue link/ })).toHaveCount(0)
+    await expect(page.getByRole("button", { name: /^Re-issue link/ })).toHaveCount(3)
     await page.getByRole("button", { name: `Remove ${removed}` }).click()
     const dialog = page.getByRole("alertdialog", { name: `Remove ${removed}?` })
     await expect(dialog).toContainText("Only 2 left, both will know who has them.")
@@ -50,6 +50,7 @@ test("Host removes a Participant after the Draw; their Giver sees the new Recipi
     await expect(page.getByRole("button", { name: `Remove ${removed}` })).toHaveCount(0)
     await expect(tracking.getByText("1 of 2 have seen their Recipient")).toBeVisible()
     await expect(page.getByRole("button", { name: /^Remove / })).toHaveCount(0)
+    await expect(page.getByRole("button", { name: /^Re-issue link/ })).toHaveCount(2)
 
     await giver.page.goto(giver.page.url().replace(/\/e\/([^/]+).*/, "/e/$1/reveal"))
     await expect(giver.page.getByText(`Your Recipient changed because ${removed} left`)).toBeVisible()

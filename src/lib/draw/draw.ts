@@ -1,9 +1,8 @@
 export type Assignment = { giverId: string; recipientId: string };
 
-/** Returns a uniformly random integer in [0, maxExclusive). */
 export type RandomSource = (maxExclusive: number) => number;
 
-/** Draws one circle: each Participant gives to the next, the last to the first (ADR-0003). */
+// One circle, not a general derangement (ADR-0003).
 export function draw(participantIds: string[], random: RandomSource = cryptoRandom): Assignment[] {
   const order = [...participantIds];
   for (let i = order.length - 1; i > 0; i--) {
@@ -13,10 +12,6 @@ export function draw(participantIds: string[], random: RandomSource = cryptoRand
   return order.map((giverId, i) => ({ giverId, recipientId: order[(i + 1) % order.length] }));
 }
 
-/**
- * True when every Participant gives exactly once and receives exactly once, nobody gives to
- * themselves, and no Assignment names anyone outside the Participants.
- */
 export function isDerangement(participantIds: string[], assignments: Assignment[]): boolean {
   const participants = new Set(participantIds);
   const givers = new Set(assignments.map((a) => a.giverId));
@@ -32,10 +27,6 @@ export function isDerangement(participantIds: string[], assignments: Assignment[
   );
 }
 
-/**
- * Removes a Participant after the Draw: their Giver takes over their Recipient, and both of the
- * removed Participant's Assignments go. Every other Assignment is unchanged.
- */
 export function closeGap(assignments: Assignment[], removedId: string): Assignment[] {
   const removedGives = assignments.find((a) => a.giverId === removedId);
   if (!removedGives) throw new Error(`Participant ${removedId} has no Assignment`);
@@ -45,7 +36,7 @@ export function closeGap(assignments: Assignment[], removedId: string): Assignme
     .map((a) => (a.recipientId === removedId ? { ...a, recipientId: removedGives.recipientId } : a));
 }
 
-/** Cryptographically secure RandomSource using rejection sampling to avoid modulo bias. */
+// Rejection sampling avoids modulo bias.
 export const cryptoRandom: RandomSource = (maxExclusive) => {
   const limit = Math.floor(0x1_0000_0000 / maxExclusive) * maxExclusive;
   const buffer = new Uint32Array(1);

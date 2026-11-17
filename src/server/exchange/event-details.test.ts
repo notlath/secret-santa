@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
-import { hostView, participantView, updateEventDetails, type EventDetailsInput } from "."
-import { created, joined, setStatus } from "./test-helpers"
+import { hostView, participantView, revealView, updateEventDetails, type EventDetailsInput } from "."
+import { created, drawnExchange, joined, setStatus } from "./test-helpers"
 
 function edited(overrides: Partial<EventDetailsInput> = {}): EventDetailsInput {
   return {
@@ -101,6 +101,17 @@ describe("updateEventDetails", () => {
     await setStatus(exchange.id, status)
 
     expect(await updateEventDetails(hostToken, edited())).toMatchObject({ ok: true })
+  })
+
+  test("an edit after the Draw changes no Assignment", async () => {
+    const exchange = await drawnExchange(["Ana", "Ben", "Cara"])
+    const recipients = async () => Promise.all(exchange.people.map(async (person) => {
+      const view = await revealView(person.personalToken)
+      return view.ok ? view.value.recipient.displayName : view.error.code
+    }))
+    const before = await recipients()
+    expect((await updateEventDetails(exchange.hostToken, edited())).ok).toBe(true)
+    expect(await recipients()).toEqual(before)
   })
 
   test("is refused once the Exchange is completed", async () => {

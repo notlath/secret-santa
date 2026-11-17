@@ -8,7 +8,6 @@ export const ROLE_LINKS: { role: DeviceRole; label: string; path: (id: string) =
   { role: "participant", label: "My exchange", path: (id) => `/e/${id}` },
 ]
 
-// Shown only on a device holding both the Host Link and a Personal Link for this Exchange.
 export async function RoleSwitcher({ exchangeId, current }: { exchangeId: string; current: DeviceRole }) {
   const credentials = deviceCredentials((await cookies()).getAll()).filter((c) => c.exchangeId === exchangeId)
   const [entry] = await deviceExchanges(credentials)
