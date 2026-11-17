@@ -1,6 +1,17 @@
 import { expect, expectNativeDisabled, test } from "./fixtures"
 import { createExchange, drawnExchange } from "./helpers"
 
+test("snow toggle waits for hydration", async ({ delayedPage }) => {
+  const slow = delayedPage.page
+  await slow.goto("/", { waitUntil: "commit" })
+  const toggle = slow.getByRole("button", { name: "Pause snow" })
+  await expectNativeDisabled(toggle)
+  delayedPage.release()
+  await expect(toggle).toBeEnabled()
+  await toggle.click()
+  await expect(slow.getByRole("button", { name: "Let it snow" })).toHaveAttribute("aria-pressed", "true")
+})
+
 for (const action of ["join", "copy"] as const) {
   test(`${action} waits for hydration before accepting input`, async ({ page, delayedPage }) => {
     const { accessCode, hostLink } = await createExchange(page)

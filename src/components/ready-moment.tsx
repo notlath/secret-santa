@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { ReadyBadge } from "@/components/ready-badge"
 import { WISHLIST_SIZE } from "@/lib/wishlist"
 
@@ -10,6 +10,14 @@ const ReportPointerSave = createContext<(pointer: boolean) => void>(() => {})
 
 export function ReadyMoments({ children }: { children: ReactNode }) {
   const [pointer, setPointer] = useState(false)
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)")
+    function onPreferenceChange(event: MediaQueryListEvent) {
+      if (event.matches) setPointer(false)
+    }
+    preference.addEventListener("change", onPreferenceChange)
+    return () => preference.removeEventListener("change", onPreferenceChange)
+  }, [])
   return (
     <ReportPointerSave.Provider value={setPointer}>
       <PointerSaveState.Provider value={pointer}>{children}</PointerSaveState.Provider>
@@ -23,7 +31,7 @@ export function useReportSave() {
 
 export function ReadyState({ ready, saved }: { ready: boolean; saved: number }) {
   const pointerSave = useContext(PointerSaveState)
-  const [readyOnLoad] = useState(ready)
+  const clearPointerSave = useContext(ReportPointerSave)
   const missing = WISHLIST_SIZE - saved
   if (!ready) {
     return (
@@ -37,14 +45,14 @@ export function ReadyState({ ready, saved }: { ready: boolean; saved: number }) 
       </section>
     )
   }
-  const pop = pointerSave && !readyOnLoad
+  const pop = pointerSave
   return (
     <section aria-labelledby="ready" className="flex flex-col gap-1 rounded-2xl border-2 border-pine bg-paper p-5">
       <div className="flex flex-wrap items-center gap-3">
         <h2 id="ready" className="font-display text-xl text-pine">
           You&apos;re Ready
         </h2>
-        <span data-pop={pop || undefined} className="inline-flex">
+        <span data-pop={pop || undefined} onAnimationEnd={() => clearPointerSave(false)} className="inline-flex">
           <ReadyBadge ready />
         </span>
       </div>

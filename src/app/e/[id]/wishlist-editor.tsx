@@ -63,7 +63,7 @@ export function WishlistEditor({ exchangeId, wishlist }: { exchangeId: string; w
     try {
       const result = await updateParticipantAction(exchangeId, { wishlist: items })
       if (result.ok) {
-        reportSave(pointerSave.current)
+        reportSave(pointerSave.current && result.becameReady && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
         setSaved("Wishlist saved.")
         router.refresh()
       } else {

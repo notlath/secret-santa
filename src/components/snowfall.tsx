@@ -2,6 +2,7 @@
 
 import { Button } from "@ui-sdk/react/button"
 import { useEffect, useState } from "react"
+import { useHydrated } from "@/hooks/use-hydrated"
 
 const STORAGE_KEY = "festive-snow-paused"
 const FLAKES = 42
@@ -32,6 +33,7 @@ const flakes = Array.from({ length: FLAKES }, () => {
 })
 
 export function Snowfall() {
+  const hydrated = useHydrated()
   const [paused, setPaused] = useState(false)
 
   useEffect(() => {
@@ -57,6 +59,7 @@ export function Snowfall() {
         ))}
       </div>
       <Button
+        disabled={!hydrated}
         onClick={toggle}
         aria-pressed={paused}
         className="fixed z-40 min-h-11 bg-paper inset-be-4 [inset-inline-end:1rem]"
