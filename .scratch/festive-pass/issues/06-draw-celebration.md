@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] A pointer-activated Draw that succeeds calls the shared `celebrate()` helper from ticket 02.
 - [ ] The Exchange Status badge animates in with a `badge-in` scale-and-fade that never starts from `scale(0)` and is turned off under reduced motion.
