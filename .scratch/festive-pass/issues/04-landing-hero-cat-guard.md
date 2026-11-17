@@ -21,7 +21,7 @@ early leave: bump runId, settle all parts in 150ms, then cooldown
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] A reusable cat guard component wraps the shared gift box. The cat and paw sit in the slot behind the box, so the lid hides them at every angle with no clipping line. The bubble sits in the slot in front.
 - [ ] The cat is a detailed tuxedo SVG (silhouette, shaded side, cream bib, muzzle and paws, gold almond eyes with slit pupils, whiskers, curled tail, cranberry collar with a gold bell). The paw is a short rounded foreleg with two toe lines.
