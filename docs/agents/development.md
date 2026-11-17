@@ -2,9 +2,9 @@
 
 ## Setup and branches
 
-Use pnpm with the versions pinned in package.json and the lockfile. After installing dependencies, run `pnpm hooks:install` once per clone. To deploy, run `scripts/setup-vercel.sh` after `scripts/setup-neon.sh`: it creates the GitHub repo and Vercel project, copies the production `DATABASE_URL` without printing it, migrates Neon's main branch and deploys. This sets the local Git hook path to the tracked `.githooks` directory; it refuses to replace another hook path. The pre-commit hook runs lint and typecheck on the working tree. Keep unrelated unfinished edits out of commits.
+Use pnpm with the versions pinned in package.json and the lockfile. After installing dependencies, run `pnpm hooks:install` once per clone. Before handing off a wizard, run each non-interactive CLI step it uses against the real service to learn its exit code when the work is already done; deploy from `git archive`, never the working folder. To deploy, run `scripts/setup-vercel.sh` after `scripts/setup-neon.sh`: it creates the GitHub repo and Vercel project, copies the production `DATABASE_URL` without printing it, migrates Neon's main branch and deploys. This sets the local Git hook path to the tracked `.githooks` directory; it refuses to replace another hook path. The pre-commit hook runs lint and typecheck on the working tree. Keep unrelated unfinished edits out of commits.
 
-For the Gift Exchange MVP, `gift-exchange-mvp` is the integration branch. Create ticket branches from it unless the user names another base. Commit work on the ticket branch. Merge or start another ticket only when authorized. The ticket's explicit stopping conditions take precedence.
+For the Gift Exchange MVP, `gift-exchange-mvp` is the integration branch. Create ticket branches from it unless the user names another base. Commit work on the ticket branch. Merge or start another ticket only when authorized. Remove an agent worktree and its branch once its work is merged; leftover worktrees carry their own `node_modules` and caches. The ticket's explicit stopping conditions take precedence.
 
 Before the first implementation slice, identify the ticket and spec's required architectural boundaries and mechanisms alongside the behavior to test. Use those requirements when choosing the implementation and review seams. The spec's Testing Decisions are the agreed seams for `tdd`.
 
@@ -47,6 +47,8 @@ Read the relevant installed Next guide under node_modules/next/dist/docs before 
 Consult references in bounded sections and reuse material already read in the session. For a failing check, inspect its exact error before widening the investigation.
 
 For client controls that need JavaScript, reuse `delayedPage` and `expectNativeDisabled` from `e2e/fixtures.ts` to exercise the server-rendered state and then release scripts. Native behavior such as form submission requires the native disabled attribute before hydration; an ARIA-only assertion does not establish that protection. `openAndExpectMotion` separately exercises normal pointer, reduced-motion pointer and keyboard activation, including a preference change after the page has mounted.
+
+Production runs on Vercel; the project ID is in `.vercel/project.json`. Read build and runtime logs with the Vercel MCP (`get_deployment`, `get_runtime_logs`) before asking for pasted output.
 
 For an action whose server-side result may succeed even if its response is lost, use `loseNextActionResponse` in `e2e/fixtures.ts` to exercise the uncertain outcome and recovery.
 

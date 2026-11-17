@@ -12,4 +12,6 @@ For new custom graphics or unfamiliar CSS utilities, require rendered evidence d
 
 Review settled changes before final verification. A successful verification must refer to unchanged inputs; consult its fingerprinted summary when comparing results or diagnosing a failure.
 
+The Spec reviewer checks the ticket against the spec as well as the code against the ticket. Where a ticket narrows a spec rule (a status, a role, a limit), report it: the spec wins unless an ADR says otherwise.
+
 Confirm each finding against the code or an existing test before reporting it, and quote the line that proves it. A claim about behavior (an allowed status, an error mapping) is checked where that behavior lives.
