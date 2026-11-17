@@ -43,7 +43,7 @@ export function JoinForm({ accessCode }: { accessCode: string }) {
   }
 
   return (
-    <form noValidate onSubmit={submit} className="flex flex-col gap-5">
+    <form method="post" noValidate onSubmit={submit} className="flex flex-col gap-5">
       <Field name="displayName" invalid={error ? true : undefined}>
         <FieldLabel>Display name</FieldLabel>
         <Input disabled={!hydrated} maxLength={DISPLAY_NAME_MAX} autoComplete="nickname" onValueChange={() => setError("")} />

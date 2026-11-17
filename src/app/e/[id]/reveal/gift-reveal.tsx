@@ -12,6 +12,7 @@ type Props = { exchangeId: string; alreadyOpened: boolean; recipient: RevealView
 export function GiftReveal({ exchangeId, alreadyOpened, recipient }: Props) {
   const hydrated = useHydrated()
   const [opened, setOpened] = useState(alreadyOpened)
+  const [entrance, setEntrance] = useState(false)
   const [error, setError] = useState("")
   const [scope, animate] = useAnimate()
   const heading = useRef<HTMLHeadingElement>(null)
@@ -30,12 +31,14 @@ export function GiftReveal({ exchangeId, alreadyOpened, recipient }: Props) {
         setError(result.message)
         return
       }
-      if (pointerActivation && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const motion = pointerActivation && !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      if (motion) {
         await animate("[data-gift-lid]", { transform: "translateY(-28px) rotate(-8deg)", opacity: 0 }, {
           duration: 0.25, ease: [0.23, 1, 0.32, 1],
         })
       }
       focusOnOpen.current = true
+      setEntrance(motion)
       setOpened(true)
     } catch {
       setError("Couldn't open your gift box. Please try again.")
@@ -64,7 +67,7 @@ export function GiftReveal({ exchangeId, alreadyOpened, recipient }: Props) {
   )
 
   return (
-    <section aria-labelledby="recipient" className="flex flex-col gap-5 rounded-2xl border-2 border-pine bg-paper p-5 sm:p-6">
+    <section aria-labelledby="recipient" data-entrance={entrance || undefined} className="flex flex-col gap-5 rounded-2xl border-2 border-pine bg-paper p-5 sm:p-6">
       <div className="flex flex-col gap-2">
         <h2 id="recipient" ref={heading} tabIndex={-1} className="font-display text-xl text-pine focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pine">Your Recipient</h2>
         <p data-testid="recipient-name" className="font-display text-3xl text-ink [overflow-wrap:anywhere]">{recipient.displayName}</p>

@@ -46,3 +46,30 @@ for (const contents of ["not-json", "null", "{}", JSON.stringify({ pid: -1 }), J
     assert.equal(readFileSync(path.join(output, "dev", "lock"), "utf8"), contents)
   })
 }
+
+function withCache(output) {
+  mkdirSync(path.join(output, "dev", "cache"), { recursive: true })
+  writeFileSync(path.join(output, "dev", "cache", "stale-css"), "old")
+}
+
+test("the Turbopack cache is cleared when no server owns the output", (t) => {
+  const output = fixture(t)
+  withCache(output)
+  prepareE2E(output)
+  assert.deepEqual(readdirSync(path.join(output, "dev")), [])
+})
+
+test("the Turbopack cache is cleared after an exited process's lock is moved aside", (t) => {
+  const child = spawnSync(process.execPath, ["-e", ""])
+  const output = fixture(t, JSON.stringify({ pid: child.pid }))
+  withCache(output)
+  prepareE2E(output)
+  assert.ok(!readdirSync(path.join(output, "dev")).includes("cache"))
+})
+
+test("a live server keeps its Turbopack cache", (t) => {
+  const output = fixture(t, JSON.stringify({ pid: process.pid }))
+  withCache(output)
+  assert.throws(() => prepareE2E(output), /owned by live PID/)
+  assert.equal(readFileSync(path.join(output, "dev", "cache", "stale-css"), "utf8"), "old")
+})

@@ -12,18 +12,19 @@ export function ParticipantControls({ exchangeId, participantId, name, drawn, re
   const hydrated = useHydrated()
   const router = useRouter()
   const [link, setLink] = useState<string>()
-  const [message, setMessage] = useState("")
+  const [messages, setMessages] = useState({ remove: "", reissue: "" })
 
   async function manage(operation: "remove" | "reissue") {
-    setMessage("")
+    setMessages((current) => ({ ...current, [operation]: "" }))
     if (operation === "reissue") setLink(undefined)
     try {
       const result = await manageParticipantAction(exchangeId, participantId, operation)
-      if (!result.ok) { setMessage(result.message); throw new Error(result.message) }
+      if (!result.ok) { setMessages((current) => ({ ...current, [operation]: result.message })); throw new Error(result.message) }
       if (result.personalToken) setLink(`${window.location.origin}/p/${result.personalToken}`)
       if (operation === "remove") router.refresh()
     } catch (error) {
-      setMessage(operation === "reissue" ? "The link may have changed. Re-issue it again to get a working link." : "Couldn't remove this Participant. Please try again.")
+      const failure = operation === "reissue" ? "The link may have changed. Re-issue it again to get a working link." : "Couldn't remove this Participant. Please try again."
+      setMessages((current) => ({ ...current, [operation]: failure }))
       throw error
     }
   }
@@ -43,7 +44,7 @@ export function ParticipantControls({ exchangeId, participantId, name, drawn, re
                 : "Their Wishlist will be deleted and their Personal Link will stop working."}
             </AlertDialogDescription>
             {drawn && remaining === 3 && <p className="font-semibold text-cranberry">Only 2 left, both will know who has them.</p>}
-            <p role="alert" className="text-cranberry">{message}</p>
+            <p role="alert" className="text-cranberry">{messages.remove}</p>
             <div className="flex flex-wrap justify-end gap-3">
               <AlertDialogClose render={<Button />}>Cancel</AlertDialogClose>
               <AlertDialogClose value="confirm" action={() => manage("remove")} render={<Button data-variant="solid" />}>Remove Participant</AlertDialogClose>
@@ -52,7 +53,7 @@ export function ParticipantControls({ exchangeId, participantId, name, drawn, re
         </AlertDialog>
       </div>
       {link && <div className="flex flex-col gap-2"><p role="status">New Personal Link for {name}. The old link no longer works.</p><p className="break-all">{link}</p><CopyButton text={link}>Copy new Personal Link</CopyButton></div>}
-      <p role="status" className="text-cranberry">{message}</p>
+      <p role="status" className="text-cranberry">{messages.reissue}</p>
     </div>
   )
 }

@@ -6,7 +6,7 @@ Use pnpm with the versions pinned in package.json and the lockfile. After instal
 
 For the Gift Exchange MVP, `gift-exchange-mvp` is the integration branch. Create ticket branches from it unless the user names another base. Commit work on the ticket branch. Merge or start another ticket only when authorized. The ticket's explicit stopping conditions take precedence.
 
-Before the first implementation slice, identify the ticket and spec's required architectural boundaries and mechanisms alongside the behavior to test. Use those requirements when choosing the implementation and review seams.
+Before the first implementation slice, identify the ticket and spec's required architectural boundaries and mechanisms alongside the behavior to test. Use those requirements when choosing the implementation and review seams. The spec's Testing Decisions are the agreed seams for `tdd`.
 
 For a behavior-changing review fix, first demonstrate the gap with a failing test at an agreed public seam when one can exercise it. Then implement the fix and rerun the test.
 
@@ -34,7 +34,7 @@ The commit hook runs only lint and typecheck; database and browser checks belong
 
 Use `pnpm test:e2e [spec paths or Playwright flags]` for focused browser checks. Its wrapper selects an available port outside the installed Next reserved-port list, or validates E2E_PORT, then starts its own Next server with E2E_TEST=1. That server owns `.next-e2e`; interactive development owns `.next`. Run one browser suite per checkout; use separate worktrees for parallel suites. Each suite retains its own database schema.
 
-Before the E2E server starts, `scripts/prepare-e2e.mjs` checks its output lock. It preserves a dead process's lock under a stale filename. A live owner or unreadable lock stops startup with an explanation. Inspect that case rather than removing a live server's lock. Interactive `.next` locks are outside this script's scope.
+Before the E2E server starts, `scripts/prepare-e2e.mjs` checks its output lock, then deletes `.next-e2e/dev/cache`: Turbopack's persistent cache has served stale CSS to fresh servers. It preserves a dead process's lock under a stale filename. A live owner or unreadable lock stops startup with an explanation. Inspect that case rather than removing a live server's lock. Interactive `.next` locks are outside this script's scope.
 
 Next regenerates the root next-env.d.ts for whichever server runs last. TypeScript excludes that changing file and gets framework references from types/next.d.ts instead. Normal typechecking includes only `.next` route helpers; tsconfig.e2e.json selects the E2E helpers. Keep the two sets separate to avoid importing another server's generated types. Next's configured tsconfig must continue listing next-env.d.ts where Next requires it; its exclusion controls TypeScript's actual input.
 
@@ -42,12 +42,14 @@ Generated Next, Playwright and worktree output is excluded from lint/typecheckin
 
 ## References
 
-Read the relevant installed Next guide under node_modules/next/dist/docs before changing Next behavior. For ui-sdk controls, start at node_modules/@ui-sdk/react/docs/llms.txt and read the component page. The spec's explicit scope exceptions apply to generic skill defaults, including the excluded ui-sdk agent-ready step.
+Read the relevant installed Next guide under node_modules/next/dist/docs before changing Next behavior. For ui-sdk controls, start at node_modules/@ui-sdk/react/docs/llms.txt and read the component page. ui-sdk's `web.css` (node_modules/@ui-sdk/core/dist/web.css) already dims `[data-pending]` parts after 150ms, and on coarse pointers draws hit areas in `::after` on buttons and `::before` on triggers; search it by `data-slot` or state attribute and read every match before styling those states or pseudo-elements. The spec's explicit scope exceptions apply to generic skill defaults, including the excluded ui-sdk agent-ready step.
 
 Consult references in bounded sections and reuse material already read in the session. For a failing check, inspect its exact error before widening the investigation.
 
 For client controls that need JavaScript, reuse `delayedPage` and `expectNativeDisabled` from `e2e/fixtures.ts` to exercise the server-rendered state and then release scripts. Native behavior such as form submission requires the native disabled attribute before hydration; an ARIA-only assertion does not establish that protection. `openAndExpectMotion` separately exercises normal pointer, reduced-motion pointer and keyboard activation, including a preference change after the page has mounted.
 
 For an action whose server-side result may succeed even if its response is lost, use `loseNextActionResponse` in `e2e/fixtures.ts` to exercise the uncertain outcome and recovery.
+
+For a new page or dialog, run `auditPage` from `e2e/a11y.ts` (or `expectEveryStopNamedAndVisible(page, dialog)` while a dialog is open): it checks names, 3:1 focus rings and control edges, and 4.5:1 text. Build browser setups from `openDashboard`, `joinFromNewDevice` and `fillWishlist` in `e2e/helpers.ts`; hold server actions with `holdActions` in `e2e/fixtures.ts`.
 
 For visibility-aware polling, use `observeRequests` and `setPageVisibility` from `e2e/fixtures.ts` to verify that requests stop while hidden and resume on return, alongside assertions on the displayed data.

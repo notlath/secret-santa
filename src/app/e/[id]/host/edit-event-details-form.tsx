@@ -51,7 +51,7 @@ export function EditEventDetailsForm({ exchangeId, details, onSaved, onCancel }:
   }
 
   return (
-    <form noValidate onSubmit={submit} aria-label="Edit Event Details" className="flex flex-col gap-8">
+    <form method="post" noValidate onSubmit={submit} aria-label="Edit Event Details" className="flex flex-col gap-8">
       <EventDetailsFields errors={errors} onEdit={clear} defaults={details} />
       {message && (
         <p role="alert" className="rounded-lg bg-cranberry/10 px-4 py-3 text-cranberry">

@@ -40,6 +40,16 @@ export async function expectNativeDisabled(control: Locator) {
   await expect(control).toHaveAttribute("disabled", "")
 }
 
+export async function holdActions(page: Page) {
+  let release = () => {}
+  const held = new Promise<void>((resolve) => { release = resolve })
+  await page.route(() => true, async (route) => {
+    if (route.request().method() === "POST" && route.request().headers()["next-action"]) await held
+    await route.continue()
+  })
+  return release
+}
+
 // Let the server finish an action, then simulate losing its response to the browser.
 export async function loseNextActionResponse(page: Page) {
   const matches = (url: URL) => url.pathname === new URL(page.url()).pathname

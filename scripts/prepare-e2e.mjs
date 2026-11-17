@@ -1,8 +1,14 @@
-import { readFileSync, renameSync } from "node:fs"
+import { readFileSync, renameSync, rmSync } from "node:fs"
 import path from "node:path"
 import { pathToFileURL } from "node:url"
 
+// Turbopack's persistent cache has served stale globals.css to fresh servers, so each run starts without it.
 export function prepareE2E(outputDirectory) {
+  releaseStaleLock(outputDirectory)
+  rmSync(path.join(outputDirectory, "dev", "cache"), { recursive: true, force: true })
+}
+
+function releaseStaleLock(outputDirectory) {
   const lockPath = path.join(outputDirectory, "dev", "lock")
   let lock
   try {

@@ -10,6 +10,7 @@ import {
   NumberInputIncrement,
 } from "@ui-sdk/react/number-input"
 import { useState, type FormEvent } from "react"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { EventDetailsFields, FormSection, readEventDetails, TextField } from "@/components/event-details-fields"
 import { LIMITS, validateExchangeDetails, type ExchangeDetailsInput } from "@/lib/exchange-details"
 import { createExchangeAction } from "./actions"
@@ -18,6 +19,7 @@ import { SaveHostLink } from "./save-host-link"
 type Created = { accessCode: string; hostToken: string }
 
 export function CreateExchangeForm() {
+  const hydrated = useHydrated()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [message, setMessage] = useState("")
   const [pending, setPending] = useState(false)
@@ -64,36 +66,38 @@ export function CreateExchangeForm() {
   }
 
   return (
-    <form noValidate onSubmit={submit} className="flex flex-col gap-8">
-      <FormSection title="The Exchange">
-        <TextField name="name" label="Exchange name" maxLength={LIMITS.name} error={errors.name} onEdit={clear}
-          description="Something your friends will recognise, like “Office Secret Santa”." />
-        <Field name="maxParticipants" invalid={errors.maxParticipants ? true : undefined}>
-          <NumberInput defaultValue={10} min={LIMITS.minParticipants} max={LIMITS.maxParticipants} step={1}
-            onValueChange={() => clear("maxParticipants")}>
-            <FieldLabel>Maximum Participants</FieldLabel>
-            <NumberInputGroup>
-              <NumberInputDecrement aria-label="Fewer Participants" />
-              <NumberInputControl />
-              <NumberInputIncrement aria-label="More Participants" />
-            </NumberInputGroup>
-          </NumberInput>
-          <FieldDescription>Between 3 and 50 people.</FieldDescription>
-          {errors.maxParticipants && <FieldError match>{errors.maxParticipants}</FieldError>}
-        </Field>
-      </FormSection>
+    <form method="post" noValidate onSubmit={submit} className="flex flex-col gap-8">
+      <fieldset disabled={!hydrated} className="contents">
+        <FormSection title="The Exchange">
+          <TextField name="name" label="Exchange name" maxLength={LIMITS.name} error={errors.name} onEdit={clear}
+            description="Something your friends will recognise, like “Office Secret Santa”." />
+          <Field name="maxParticipants" invalid={errors.maxParticipants ? true : undefined}>
+            <NumberInput defaultValue={10} min={LIMITS.minParticipants} max={LIMITS.maxParticipants} step={1}
+              onValueChange={() => clear("maxParticipants")}>
+              <FieldLabel>Maximum Participants</FieldLabel>
+              <NumberInputGroup>
+                <NumberInputDecrement aria-label="Fewer Participants" />
+                <NumberInputControl />
+                <NumberInputIncrement aria-label="More Participants" />
+              </NumberInputGroup>
+            </NumberInput>
+            <FieldDescription>Between 3 and 50 people.</FieldDescription>
+            {errors.maxParticipants && <FieldError match>{errors.maxParticipants}</FieldError>}
+          </Field>
+        </FormSection>
 
-      <EventDetailsFields errors={errors} onEdit={clear} />
+        <EventDetailsFields errors={errors} onEdit={clear} />
 
-      {message && (
-        <p role="alert" className="rounded-lg bg-cranberry/10 px-4 py-3 text-cranberry">
-          {message}
-        </p>
-      )}
+        {message && (
+          <p role="alert" className="rounded-lg bg-cranberry/10 px-4 py-3 text-cranberry">
+            {message}
+          </p>
+        )}
 
-      <Button type="submit" data-variant="solid" disabled={pending} focusableWhenDisabled className="self-start">
-        {pending ? "Creating…" : "Create Exchange"}
-      </Button>
+        <Button type="submit" data-variant="solid" disabled={!hydrated || pending} focusableWhenDisabled={hydrated} className="self-start">
+          {pending ? "Creating…" : "Create Exchange"}
+        </Button>
+      </fieldset>
     </form>
   )
 }

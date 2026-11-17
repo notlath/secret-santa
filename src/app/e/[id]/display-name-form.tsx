@@ -5,10 +5,12 @@ import { Field, FieldError, FieldLabel } from "@ui-sdk/react/field"
 import { Input } from "@ui-sdk/react/input"
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { DISPLAY_NAME_MAX, validateDisplayName } from "@/lib/display-name"
 import { updateParticipantAction } from "./actions"
 
 export function DisplayNameForm({ exchangeId, displayName }: { exchangeId: string; displayName: string }) {
+  const hydrated = useHydrated()
   const router = useRouter()
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
@@ -43,33 +45,35 @@ export function DisplayNameForm({ exchangeId, displayName }: { exchangeId: strin
   }
 
   return (
-    <form noValidate onSubmit={submit} className="flex flex-col gap-3">
-      <Field name="displayName" invalid={error ? true : undefined}>
-        <FieldLabel>Display name</FieldLabel>
-        <Input
-          defaultValue={displayName}
-          maxLength={DISPLAY_NAME_MAX}
-          autoComplete="nickname"
-          onValueChange={() => {
-            setError("")
-            setSaved("")
-          }}
-        />
-        {error && <FieldError match>{error}</FieldError>}
-      </Field>
-      {message && (
-        <p role="alert" className="rounded-lg bg-cranberry/10 px-4 py-3 text-cranberry">
-          {message}
-        </p>
-      )}
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={pending} focusableWhenDisabled>
-          {pending ? "Saving…" : "Save name"}
-        </Button>
-        <span role="status" className="text-sm text-pine">
-          {saved}
-        </span>
-      </div>
+    <form method="post" noValidate onSubmit={submit} className="flex flex-col gap-3">
+      <fieldset disabled={!hydrated} className="contents">
+        <Field name="displayName" invalid={error ? true : undefined}>
+          <FieldLabel>Display name</FieldLabel>
+          <Input
+            defaultValue={displayName}
+            maxLength={DISPLAY_NAME_MAX}
+            autoComplete="nickname"
+            onValueChange={() => {
+              setError("")
+              setSaved("")
+            }}
+          />
+          {error && <FieldError match>{error}</FieldError>}
+        </Field>
+        {message && (
+          <p role="alert" className="rounded-lg bg-cranberry/10 px-4 py-3 text-cranberry">
+            {message}
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" disabled={!hydrated || pending} focusableWhenDisabled={hydrated}>
+            {pending ? "Saving…" : "Save name"}
+          </Button>
+          <span role="status" className="text-sm text-pine">
+            {saved}
+          </span>
+        </div>
+      </fieldset>
     </form>
   )
 }
