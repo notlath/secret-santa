@@ -6,7 +6,7 @@ Reference: the RevealDemo and `celebrate()` in `prototype/festive-motion`, with 
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] `canvas-confetti` is added pinned exactly at `1.9.3`, and `@types/canvas-confetti` pinned exactly at `1.9.0`.
 - [ ] A shared `celebrate()` helper fires two side bursts (80 particles each, spread 70, start velocity 55) with `disableForReducedMotion: true`. It is reusable by the Draw (ticket 06).
