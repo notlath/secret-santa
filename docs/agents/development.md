@@ -26,6 +26,8 @@ Run `pnpm test` green first: it fails in seconds where verify reaches it after l
 
 `pnpm verify` takes about 90 seconds, past the tool timeout. Start it with `run_in_background`, wait for the completion notification, and read its output file rather than piping it through `tail`.
 
+When browser tests time out under machine load, set `E2E_WORKERS` to a smaller positive number for the verification run (for example, `E2E_WORKERS=2 pnpm verify`).
+
 Verification fingerprints tracked and untracked Git-visible inputs before running checks and after each check. An edit invalidates the result even if every executed check passed. Generated Next files and ignored outputs are excluded. Finish focused fixes and review corrections before the final run, and keep inputs unchanged until it finishes. Edits reverted between snapshots cannot be detected; use an unchanged checkout for final verification.
 
 Each verification run prints its fingerprint and saves a JSON summary plus per-check logs under `test-results/verification/<run-id>/`. Browser output goes to `test-results/e2e/<run-id>/`; focused runs get their own identifiers too, so a later run preserves earlier traces and screenshots. A failed summary identifies the check, exit code, log and browser output directory. Inspect those artifacts and build a focused reproducer for repeated failures before rerunning the full suite. Ports are checked before server startup, but another process can claim one after the probe; in that case inspect startup output and choose another port.
