@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] Exchange module `updateEventDetails`, Host only, with the same validation as creation; refused when `completed`
 - [ ] Host dashboard has an edit form using the same ui-sdk fields as the create page

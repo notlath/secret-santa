@@ -4,7 +4,7 @@
 
 **Blocked by:** 07
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] `markCompleted` moves `assigned` → `completed`, Host only; any other starting status is refused
 - [ ] In `completed`, every edit (Event Details, Wishlists, removals, re-issues) is refused, and reveals stay visible

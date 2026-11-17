@@ -4,7 +4,7 @@
 
 **Blocked by:** 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] Playwright full journey at phone and desktop sizes: Host creates and joins, 3 Participants join in separate browser contexts and fill in Wishlists, Host closes and draws, everyone reveals, reload shows the same Recipient, a Personal Link restores a session in a fresh context, Host-only URLs refuse a Participant cookie
 - [ ] Keyboard-only pass through the whole flow; every control named and reachable; focus visible

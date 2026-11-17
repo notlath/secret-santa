@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] After saving the Host Link, the Host is offered to join as a Participant through the normal join rules, and gets a separate Personal Link with its own save prompt
 - [ ] On a device with both cookies for an Exchange, a switcher shows "Host dashboard" and "My exchange"

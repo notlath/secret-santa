@@ -4,7 +4,7 @@
 
 **Blocked by:** 03
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] Exchange module `closeRegistration` and `reopenRegistration`, Host only; open → closed and closed → open succeed and every other transition is refused with an invalid-transition error
 - [ ] Joining a closed Exchange shows "registration is closed"

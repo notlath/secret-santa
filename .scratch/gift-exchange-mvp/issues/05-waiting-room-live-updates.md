@@ -4,7 +4,7 @@
 
 **Blocked by:** 03
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] Participant view shows display names, count, Ready badges and a plain-words Status ("Waiting for everyone to join", "Registration closed", etc.)
 - [ ] No Wishlist contents of other Participants appear anywhere in the view

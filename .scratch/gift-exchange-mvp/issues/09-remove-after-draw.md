@@ -4,7 +4,7 @@
 
 **Blocked by:** 07, 08
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] Removal in `assigned` uses the Draw function's close-the-gap step in one transaction: the removed Participant's Giver gets their Recipient, both of the removed Participant's Assignments are deleted, the Giver's revealed timestamp is cleared and their "Recipient changed" flag is set
 - [ ] If removal would leave 2 Participants, the confirmation warns "Only 2 left, both will know who has them" before proceeding

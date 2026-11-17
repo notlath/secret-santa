@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] Draw takes Participant ids and a random source and returns Assignments forming one circle; production uses `crypto.getRandomValues`
 - [ ] Derangement check rejects any result where someone gives to themselves, a Recipient repeats, or a Participant is missing as Giver or Recipient

@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] Next.js App Router project with pnpm, Tailwind (cranberry/pine/cream/gold tokens meeting WCAG AA, display + body fonts through next/font), `@ui-sdk/react` pinned exactly at 0.1.0-beta.3 with `@layer ui-sdk;` above the Tailwind import
 - [ ] Neon Postgres through Drizzle, accessed only from server code, with migrations; Vitest runs against a real, disposable Postgres
