@@ -6,7 +6,7 @@ Reference: Snowfall and the snow toggle in `prototype/festive-motion` (see `.scr
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] The snowfall layer is fixed in place behind the content, has `pointer-events: none`, is `aria-hidden`, and is a CSS keyframe loop. Flake positions come from a seeded random sequence, so there are no hydration mismatches.
 - [ ] The toggle is a ui-sdk Button with a visible label, `aria-pressed`, a target at least 44px tall and a visible focus ring. At phone width it never covers page controls.
