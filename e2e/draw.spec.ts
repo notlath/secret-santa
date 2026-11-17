@@ -73,6 +73,8 @@ test("Host draws once; every Participant privately opens the same Recipient on r
         expect(body!.height).toBeGreaterThan(box!.height * 0.5)
         expect(lid!.width).toBeGreaterThanOrEqual(body!.width)
         expect(lid!.height).toBeGreaterThan(0)
+        expect(await graphic.locator("svg[data-gift-lid]").count()).toBe(1)
+        expect(box!.width).toBeGreaterThanOrEqual(159)
         await friend.screenshot({ path: testInfo.outputPath("gift-box.png"), fullPage: true })
       }
       await page.reload()

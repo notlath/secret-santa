@@ -3,6 +3,7 @@
 import { Button } from "@ui-sdk/react/button"
 import { useAnimate } from "motion/react"
 import { useEffect, useRef, useState, type MouseEvent } from "react"
+import { GiftBox } from "@/components/gift-box"
 import { useHydrated } from "@/hooks/use-hydrated"
 import type { RevealView } from "@/server/exchange"
 import { openRevealAction } from "./actions"
@@ -50,16 +51,7 @@ export function GiftReveal({ exchangeId, alreadyOpened, recipient }: Props) {
       <h2 id="gift" className="font-display text-2xl text-ink">Who will you surprise?</h2>
       <p className="text-center text-muted-ink">Your Recipient and their three wishes are inside.</p>
       <Button disabled={!hydrated} onClick={openGift} pendingAnnouncement="Opening your gift box" className="flex flex-col gap-5 py-5">
-        <span ref={scope} aria-hidden="true" className="relative block h-36 w-40">
-          <span className="absolute [inset-inline:0.5rem] inset-bs-10 inset-be-0 rounded-ee-lg rounded-es-lg bg-cranberry" />
-          <span className="absolute inset-bs-10 inset-be-0 [inset-inline-start:4.25rem] w-6 bg-gold" />
-          <span data-gift-lid className="absolute [inset-inline:0] inset-bs-7 block h-8 rounded-md bg-cranberry-deep">
-            <span className="absolute inset-bs-0 inset-be-0 [inset-inline-start:4.25rem] w-6 bg-gold" />
-            <svg viewBox="0 0 80 32" className="absolute -inset-bs-7 [inset-inline-start:2.5rem] h-8 w-20 fill-none stroke-gold stroke-[4]">
-              <path d="M40 30C8 30 4 3 20 3c12 0 20 27 20 27ZM40 30C72 30 76 3 60 3c-12 0-20 27-20 27Z" />
-            </svg>
-          </span>
-        </span>
+        <span ref={scope} className="block"><GiftBox /></span>
         Open my gift box
       </Button>
       <p role="alert" className="text-cranberry">{error}</p>
