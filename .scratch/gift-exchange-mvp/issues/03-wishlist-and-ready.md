@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] `wishlist_item` table (position 1–3, unique per Participant)
 - [ ] Item name 1–80 characters, description up to 300, product link must be an http or https URL of at most 2,000 characters; validated in the Exchange module

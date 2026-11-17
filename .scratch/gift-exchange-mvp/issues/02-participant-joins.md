@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] `participant` table per the spec's data model (normalised display name unique per Exchange, personal token hash unique)
 - [ ] `/join` accepts the code in any case, with or without the dash; `/join/<code>` fills it in

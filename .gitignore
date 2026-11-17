@@ -1,2 +1,16 @@
 .agents
 .env*.local
+/node_modules
+/.next/
+/.next-e2e/
+/out/
+/coverage
+/test-results/
+/playwright-report/
+/blob-report/
+.DS_Store
+*.pem
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+.claude/

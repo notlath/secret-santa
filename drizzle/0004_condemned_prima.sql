@@ -1,0 +1,1 @@
+ALTER TABLE "participant" ADD COLUMN "recipient_changed_because" text;

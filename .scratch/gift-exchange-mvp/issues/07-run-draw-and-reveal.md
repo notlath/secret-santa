@@ -4,7 +4,7 @@
 
 **Blocked by:** 04, 06
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] `assignment` table (giver unique per Exchange, recipient unique per Exchange, giver ≠ recipient)
 - [ ] Start Draw opens a ui-sdk Alert Dialog: "Draw for N participants? This can't be undone."

@@ -159,7 +159,7 @@ A mobile-first web app with no accounts. A Host creates an Exchange with its Eve
 ### Data model
 
 - **exchange**: id, name, access code (unique), status, maximum Participants (3–50), event date (local date, no time zone), event time (local time, no time zone), location, description, instructions, notes, budget amount (optional, decimal), budget currency (ISO 4217 code, required when an amount is set), host token hash (unique), created and updated timestamps.
-- **participant**: id, exchange id, display name, normalised display name (trimmed, inner whitespace collapsed, lowercased; unique per Exchange), personal token hash (unique), revealed at (nullable), recipient changed (boolean), created timestamp.
+- **participant**: id, exchange id, display name, normalised display name (trimmed, inner whitespace collapsed, lowercased; unique per Exchange), personal token hash (unique), revealed at (nullable), recipient changed (boolean), recipient changed because (nullable text: the removed Participant's display name, kept so the reveal note survives their deletion), created timestamp.
 - **wishlist_item**: participant id, position (1–3; unique per Participant), name, description (optional), product link (optional).
 - **assignment**: exchange id, giver id (unique per Exchange), recipient id (unique per Exchange), with a check that giver and recipient differ.
 - **Readiness** is derived (three items with non-empty names), not stored.

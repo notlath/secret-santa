@@ -4,7 +4,7 @@
 
 **Blocked by:** 03
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] Host can remove a Participant in `open` or `closed` after a confirmation; their Wishlist goes with them and their link stops working
 - [ ] Host can re-issue a Participant's Personal Link; the new link is shown for the Host to copy; the old token's hash is replaced so it stops working
