@@ -2,7 +2,7 @@
 
 ## Setup and branches
 
-Use pnpm with the versions pinned in package.json and the lockfile. After installing dependencies, run `pnpm hooks:install` once per clone. This sets the local Git hook path to the tracked `.githooks` directory; it refuses to replace another hook path. The pre-commit hook runs lint and typecheck on the working tree. Keep unrelated unfinished edits out of commits.
+Use pnpm with the versions pinned in package.json and the lockfile. After installing dependencies, run `pnpm hooks:install` once per clone. To deploy, run `scripts/setup-vercel.sh` after `scripts/setup-neon.sh`: it creates the GitHub repo and Vercel project, copies the production `DATABASE_URL` without printing it, migrates Neon's main branch and deploys. This sets the local Git hook path to the tracked `.githooks` directory; it refuses to replace another hook path. The pre-commit hook runs lint and typecheck on the working tree. Keep unrelated unfinished edits out of commits.
 
 For the Gift Exchange MVP, `gift-exchange-mvp` is the integration branch. Create ticket branches from it unless the user names another base. Commit work on the ticket branch. Merge or start another ticket only when authorized. The ticket's explicit stopping conditions take precedence.
 
