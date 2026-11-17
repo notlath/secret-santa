@@ -54,6 +54,6 @@ Production runs on Vercel; the project ID is in `.vercel/project.json`. Read bui
 
 For an action whose server-side result may succeed even if its response is lost, use `loseNextActionResponse` in `e2e/fixtures.ts` to exercise the uncertain outcome and recovery.
 
-For a new page or dialog, run `auditPage` from `e2e/a11y.ts` (or `expectEveryStopNamedAndVisible(page, dialog)` while a dialog is open): it checks names, 3:1 focus rings and control edges, and 4.5:1 text. Build browser setups from `openDashboard`, `joinFromNewDevice` and `fillWishlist` in `e2e/helpers.ts`; hold server actions with `holdActions` in `e2e/fixtures.ts`.
+For a new page or dialog, run `auditPage` from `e2e/a11y.ts` (or `expectEveryStopNamedAndVisible(page, dialog)` while a dialog is open): it checks names, 3:1 focus rings and control edges, and 4.5:1 text. Wait for the intended URL and the controls the audit needs before auditing; a navigation still in flight races the focus pass. Build browser setups from `openDashboard`, `joinFromNewDevice` and `fillWishlist` in `e2e/helpers.ts`; hold server actions with `holdActions` in `e2e/fixtures.ts`.
 
 For visibility-aware polling, use `observeRequests` and `setPageVisibility` from `e2e/fixtures.ts` to verify that requests stop while hidden and resume on return, alongside assertions on the displayed data.
