@@ -70,15 +70,17 @@ export type OpeningMode = "pointer" | "reduced-motion-pointer" | "keyboard"
 export async function openAndExpectMotion(page: Page, button: Locator, mode: OpeningMode) {
   await expect(button).toBeEnabled()
   await page.emulateMedia({ reducedMotion: mode === "reduced-motion-pointer" ? "reduce" : "no-preference" })
-  const movement = button.evaluate((element) => new Promise<boolean>((resolve, reject) => {
+  const movement = button.evaluate((element) => new Promise<[boolean, boolean]>((resolve, reject) => {
     let moved = false
+    let confetti = false
     let finished = false
     const timeout = setTimeout(() => { finished = true; reject(new Error("The reveal did not finish opening")) }, 10_000)
     function sample() {
       if (finished) return
+      if (element.ownerDocument.querySelector("canvas")) confetti = true
       if (!element.isConnected) {
         clearTimeout(timeout)
-        resolve(moved)
+        resolve([moved, confetti])
         return
       }
       if ([...element.querySelectorAll("*")].some((part) => getComputedStyle(part).transform !== "none")) moved = true
@@ -92,6 +94,7 @@ export async function openAndExpectMotion(page: Page, button: Locator, mode: Ope
       await page.keyboard.press("Enter")
     } else await button.click()
   }
-  const [animated] = await Promise.all([movement, activate()])
+  const [[animated, confetti]] = await Promise.all([movement, activate()])
   expect(animated, `${mode} opening motion`).toBe(mode === "pointer")
+  expect(confetti, `${mode} opening confetti`).toBe(mode === "pointer")
 }
