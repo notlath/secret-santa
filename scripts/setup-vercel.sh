@@ -251,6 +251,7 @@ else
   gh repo create "$PROJECT_NAME" --private --source . --remote origin
 fi
 git push -u origin main
+REPO_NAME=$(basename -s .git "$(git remote get-url origin)")
 printf '  %s✓ pushed%s main to GitHub\n' "$GREEN" "$RESET"
 pause
 
@@ -285,8 +286,8 @@ pause
 stage "Connect the GitHub repository"
 say "Vercel needs its GitHub app installed on your account to see the private repo."
 open_url "https://github.com/apps/vercel/installations/new"
-step "Pick your account, choose \"Only select repositories\", add \"$PROJECT_NAME\", then Install."
-step "If it's already installed, check \"$PROJECT_NAME\" is in its repository list and Save."
+step "Pick your account, choose \"Only select repositories\", add \"$REPO_NAME\", then Install."
+step "If it's already installed, check \"$REPO_NAME\" is in its repository list and Save."
 pause "Press Enter once the Vercel app can see the repo"
 "${VERCEL[@]}" git connect --yes
 note "From now on, every push to main deploys to production by itself."
