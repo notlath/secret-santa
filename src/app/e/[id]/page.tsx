@@ -1,9 +1,11 @@
 import { Button } from "@ui-sdk/react/button"
 import Link from "next/link"
 import { cookies } from "next/headers"
+import { CatGuard } from "@/components/cat-guard"
 import { CopyButton } from "@/components/copy-button"
 import { EventDetailsList } from "@/components/event-details-list"
 import { Explanation } from "@/components/explanation"
+import { GiftBox } from "@/components/gift-box"
 import { LiveRefresh } from "@/components/live-refresh"
 import { ReadyBadge } from "@/components/ready-badge"
 import { RoleSwitcher } from "@/components/role-switcher"
@@ -46,13 +48,23 @@ export default async function ParticipantPage({ params }: PageProps<"/e/[id]">) 
         <StatusBadge status={exchange.status} />
       </header>
 
-      {!editable && (
-        <section aria-labelledby="drawn" className="flex flex-col gap-3 rounded-2xl border-2 border-pine bg-paper p-5">
-          <h2 id="drawn" className="font-display text-xl text-pine">Your Recipient is waiting</h2>
-          <p className="text-muted-ink">The Draw is complete. Open your gift box to find out who you&apos;re giving to.</p>
-          <Button render={<Link href={`/e/${id}/reveal`} />} className="self-start">Reveal my Recipient</Button>
-        </section>
-      )}
+      <section data-gift-card aria-labelledby="gift-box" className="flex items-center gap-5 rounded-2xl border-2 border-pine bg-paper p-5">
+        {editable ? <CatGuard /> : <GiftBox />}
+        <div className="flex min-w-0 flex-col gap-3">
+          {editable ? (
+            <>
+              <h2 id="gift-box" className="font-display text-xl text-pine">Your gift box</h2>
+              <p className="text-muted-ink">Your gift box opens after the Draw.</p>
+            </>
+          ) : (
+            <>
+              <h2 id="gift-box" className="font-display text-xl text-pine">Your Recipient is waiting</h2>
+              <p className="text-muted-ink">The Draw is complete. Open your gift box to find out who you&apos;re giving to.</p>
+              <Button render={<Link href={`/e/${id}/reveal`} />} className="self-start">Reveal my Recipient</Button>
+            </>
+          )}
+        </div>
+      </section>
 
       {editable && <ReadyState ready={exchange.me.ready} saved={exchange.me.wishlist.length} />}
 
