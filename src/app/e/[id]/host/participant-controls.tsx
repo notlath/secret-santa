@@ -32,25 +32,27 @@ export function ParticipantControls({ exchangeId, participantId, name, drawn, re
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
-        {!drawn && <Button disabled={!hydrated} onClick={() => manage("reissue")} pendingAnnouncement="Creating a new Personal Link" aria-label={`Re-issue link for ${name}`}>Re-issue link</Button>}
-        <AlertDialog pendingAnnouncement="Removing Participant">
-          <AlertDialogTrigger render={<Button disabled={!hydrated} aria-label={`Remove ${name}`} />}>Remove</AlertDialogTrigger>
-          <AlertDialogBackdrop />
-          <AlertDialogContent>
-            <AlertDialogTitle className="font-display text-xl">Remove {name}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {drawn
-                ? "Their Personal Link will stop working. The person who was giving to them will give to their Recipient instead, and will open their reveal again."
-                : "Their Wishlist will be deleted and their Personal Link will stop working."}
-            </AlertDialogDescription>
-            {drawn && remaining === 3 && <p className="font-semibold text-cranberry">Only 2 left, both will know who has them.</p>}
-            <p role="alert" className="text-cranberry">{messages.remove}</p>
-            <div className="flex flex-wrap justify-end gap-3">
-              <AlertDialogClose render={<Button />}>Cancel</AlertDialogClose>
-              <AlertDialogClose value="confirm" action={() => manage("remove")} render={<Button data-variant="solid" />}>Remove Participant</AlertDialogClose>
-            </div>
-          </AlertDialogContent>
-        </AlertDialog>
+        <Button disabled={!hydrated} onClick={() => manage("reissue")} pendingAnnouncement="Creating a new Personal Link" aria-label={`Re-issue link for ${name}`}>Re-issue link</Button>
+        {(!drawn || remaining > 2) && (
+          <AlertDialog pendingAnnouncement="Removing Participant">
+            <AlertDialogTrigger render={<Button disabled={!hydrated} aria-label={`Remove ${name}`} />}>Remove</AlertDialogTrigger>
+            <AlertDialogBackdrop />
+            <AlertDialogContent>
+              <AlertDialogTitle className="font-display text-xl">Remove {name}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {drawn
+                  ? "Their Personal Link will stop working. The person who was giving to them will give to their Recipient instead, and will open their reveal again."
+                  : "Their Wishlist will be deleted and their Personal Link will stop working."}
+              </AlertDialogDescription>
+              {drawn && remaining === 3 && <p className="font-semibold text-cranberry">Only 2 left, both will know who has them.</p>}
+              <p role="alert" className="text-cranberry">{messages.remove}</p>
+              <div className="flex flex-wrap justify-end gap-3">
+                <AlertDialogClose render={<Button />}>Cancel</AlertDialogClose>
+                <AlertDialogClose value="confirm" action={() => manage("remove")} render={<Button data-variant="solid" />}>Remove Participant</AlertDialogClose>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
       {link && <div className="flex flex-col gap-2"><p role="status">New Personal Link for {name}. The old link no longer works.</p><p className="break-all">{link}</p><CopyButton text={link}>Copy new Personal Link</CopyButton></div>}
       <p role="status" className="text-cranberry">{messages.reissue}</p>

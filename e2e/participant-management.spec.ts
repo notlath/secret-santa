@@ -1,5 +1,5 @@
 import { expect, loseNextActionResponse, test } from "./fixtures"
-import { createExchange } from "./helpers"
+import { createExchange, drawnExchange } from "./helpers"
 
 test("Host re-issues a Personal Link and the old link and cookie stop working", async ({ page, browser }) => {
   const { accessCode } = await createExchange(page)
@@ -64,4 +64,29 @@ test("Host confirms removal before the Participant loses access", async ({ page,
   await friend.goto(personalLink)
   await expect(friend.getByRole("heading", { name: "This link no longer works" })).toBeVisible()
   await device.close()
+})
+
+test("after the Draw, a re-issued link brings back the same Recipient and the old one stops working", async ({ page, browser }) => {
+  test.setTimeout(120_000)
+  const people = await drawnExchange(page, browser)
+  try {
+    const [ana] = people
+    await ana.page.getByRole("link", { name: "Reveal my Recipient" }).click()
+    await ana.page.getByRole("button", { name: "Open my gift box" }).click()
+    const recipient = await ana.page.getByTestId("recipient-name").innerText()
+
+    await page.getByRole("button", { name: "Re-issue link for Ana" }).click()
+    const newLink = (await page.getByText(/\/p\/[A-Za-z0-9_-]{22,}$/).innerText()).trim()
+    const device = await browser.newContext()
+    const fresh = await device.newPage()
+    await fresh.goto(newLink)
+    await fresh.getByRole("link", { name: "Reveal my Recipient" }).click()
+    await expect(fresh.getByTestId("recipient-name")).toHaveText(recipient)
+    await device.close()
+
+    await ana.page.reload()
+    await expect(ana.page.getByRole("heading", { name: "This link no longer works" })).toBeVisible()
+  } finally {
+    await Promise.all(people.map((person) => person.context.close()))
+  }
 })

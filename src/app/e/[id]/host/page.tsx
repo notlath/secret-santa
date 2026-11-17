@@ -83,7 +83,7 @@ export default async function HostDashboardPage({ params }: PageProps<"/e/[id]/h
             {exchange.participants.map((participant) => (
               <li key={participant.id} className="flex flex-col gap-3 px-4 py-3 text-ink">
                 <div className="flex items-center justify-between gap-3"><span className="min-w-0 break-words">{participant.displayName}</span><ReadyBadge ready={participant.ready} /></div>
-                {exchange.status !== "completed" && (exchange.status !== "assigned" || exchange.participants.length > 2) && <ParticipantControls exchangeId={id} participantId={participant.id} name={participant.displayName} drawn={exchange.status === "assigned"} remaining={exchange.participants.length} />}
+                {exchange.status !== "completed" && <ParticipantControls exchangeId={id} participantId={participant.id} name={participant.displayName} drawn={exchange.status === "assigned"} remaining={exchange.participants.length} />}
               </li>
             ))}
           </ul>

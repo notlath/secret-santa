@@ -19,7 +19,6 @@ type Props = {
   defaults?: EventDetailsValues
 }
 
-// Used by both the create form and the Host's edit form, so they validate and look the same.
 export function EventDetailsFields({ errors, onEdit, defaults }: Props) {
   const [chosenCurrency, setCurrency] = useState<string | null>(defaults?.budgetCurrency ?? null)
   const localeCurrency = useSyncExternalStore(noSubscription, () => currencyForLocale(navigator.language), () => "USD")
