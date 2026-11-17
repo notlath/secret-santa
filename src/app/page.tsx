@@ -1,6 +1,7 @@
 import { Button } from "@ui-sdk/react/button"
 import { cookies } from "next/headers"
 import Link from "next/link"
+import { Snowfall } from "@/components/snowfall"
 import { ROLE_LINKS } from "@/components/role-switcher"
 import { deviceCredentials } from "@/server/credentials"
 import { deviceExchanges } from "@/server/exchange"
@@ -10,7 +11,9 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   const remembered = await deviceExchanges(deviceCredentials((await cookies()).getAll()))
 
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-8 px-4 py-12">
+    <>
+    <Snowfall />
+    <main className="relative z-10 mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-8 px-4 pbs-12 pbe-24">
       {deleted === "1" && (
         <p role="status" className="rounded-lg bg-cream-deep px-4 py-3 text-ink">
           The Exchange was deleted, along with everything in it.
@@ -59,5 +62,6 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         </section>
       )}
     </main>
+    </>
   )
 }
