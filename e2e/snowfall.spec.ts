@@ -30,6 +30,7 @@ test("snow does not block clicks and the festive pages pass the audit", async ({
   try {
     await person.page.getByRole("link", { name: "Go to my page" }).click()
     await expect(snow(person.page)).toBeAttached()
+    await expect(person.page).not.toHaveURL(/joined/)
     await auditPage(person.page)
     await person.page.getByRole("group", { name: "Item 1" }).getByLabel("Name", { exact: true }).click()
   } finally {
@@ -84,6 +85,8 @@ test("the reveal has snow and the Host dashboard has none", async ({ page, brows
     const mine = people[0].page
     await mine.reload()
     await mine.getByRole("link", { name: "Reveal my Recipient" }).click()
+    await expect(mine).toHaveURL(/\/reveal$/)
+    await expect(mine.getByRole("button", { name: "Open my gift box" })).toBeEnabled()
     await expect(snow(mine)).toBeAttached()
     await auditPage(mine)
   } finally {
