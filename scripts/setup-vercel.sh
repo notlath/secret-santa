@@ -289,7 +289,15 @@ open_url "https://github.com/apps/vercel/installations/new"
 step "Pick your account, choose \"Only select repositories\", add \"$REPO_NAME\", then Install."
 step "If it's already installed, check \"$REPO_NAME\" is in its repository list and Save."
 pause "Press Enter once the Vercel app can see the repo"
-"${VERCEL[@]}" git connect --yes
+# The CLI exits 1 when the repo is already connected, which is the state we want.
+if ! connect_output=$("${VERCEL[@]}" git connect --yes 2>&1); then
+  if [[ "$connect_output" != *"already connected"* ]]; then
+    printf '%s\n' "$connect_output"
+    warn "Vercel couldn't connect the repo. Check the GitHub app can see it, then re-run."
+    exit 1
+  fi
+fi
+printf '  %s✓ connected%s %s to the Vercel project\n' "$GREEN" "$RESET" "$REPO_NAME"
 note "From now on, every push to main deploys to production by itself."
 pause
 
