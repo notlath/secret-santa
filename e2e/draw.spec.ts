@@ -1,4 +1,4 @@
-import { expect, test, type BrowserContext, type Page } from "@playwright/test"
+import { expect, test, type BrowserContext, type Page, type Route } from "@playwright/test"
 import { auditPage } from "./a11y"
 import { openAndExpectMotion, type OpeningMode } from "./fixtures"
 import { createExchange } from "./helpers"
@@ -44,8 +44,23 @@ test("Host draws once; every Participant privately opens the same Recipient on r
     await page.keyboard.press("Tab")
     await expect(dialog.getByRole("button", { name: "Cancel", exact: true })).toBeFocused()
     await page.keyboard.press("Tab")
-    await page.keyboard.press("Enter")
+    const failDraw = async (route: Route) => {
+      if (route.request().method() === "POST" && route.request().headers()["next-action"]) await route.abort("failed")
+      else await route.continue()
+    }
+    await page.route("**/*", failDraw)
+    await dialog.getByRole("button", { name: "Draw now" }).click()
+    await expect(dialog.getByRole("alert")).toHaveText("Couldn't run the Draw. Please try again.")
+    await expect(page.locator("canvas")).toHaveCount(0)
+    await expect(page.getByText("Registration closed", { exact: true })).toBeVisible()
+    await page.unroute("**/*", failDraw)
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await dialog.getByRole("button", { name: "Draw now" }).click()
     await expect(page.getByText("The Draw is complete. Ask everyone to open their reveal.")).toBeVisible()
+    const status = page.getByText("Draw done", { exact: true })
+    await expect(status).toBeVisible()
+    expect(await status.evaluate((element) => element.getAnimations().length)).toBe(0)
+    await expect(page.locator("canvas")).toHaveCount(0)
     const tracking = page.getByRole("region", { name: "Reveals" })
     await expect(tracking.getByText("0 of 3 have seen their Recipient")).toBeVisible()
     await expect(start).toHaveCount(0)

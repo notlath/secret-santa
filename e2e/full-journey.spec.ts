@@ -35,6 +35,8 @@ test("the whole Exchange, from creating it to every reveal, across separate devi
     await page.getByRole("button", { name: "Close registration", exact: true }).click()
     await page.getByRole("button", { name: "Start Draw", exact: true }).click()
     await page.getByRole("alertdialog", { name: "Draw for 4 participants?" }).getByRole("button", { name: "Draw now" }).click()
+    await expect(page.locator("canvas")).toHaveCount(1)
+    await expect(page.getByText("Draw done", { exact: true })).toBeVisible()
     const reveals = page.getByRole("region", { name: "Reveals" })
     await expect(reveals.getByText("0 of 4 have seen their Recipient")).toBeVisible()
 
